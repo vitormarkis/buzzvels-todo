@@ -1,18 +1,65 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  mode: "jit",
   darkMode: ["class"],
   content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
-	],
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+  ],
   theme: {
     container: {
       center: true,
       padding: "2rem",
       screens: {
         "2xl": "1400px",
+      },
+    },
+    colors: {
+      black: "rgba(var(--black) / <alpha-value>)",
+      white: "rgba(var(--white) / <alpha-value>)",
+      transparent: "transparent",
+      background: {
+        DEFAULT: "rgba(var(--background) / <alpha-value>)",
+        shadow: "rgba(var(--background-shadow) / <alpha-value>)",
+      },
+      color: {
+        DEFAULT: "rgba(var(--color) / <alpha-value>)",
+        soft: "rgba(var(--color-soft) / <alpha-value>)",
+        strong: "rgba(var(--color-strong) / <alpha-value>)",
+      },
+      heading: {
+        DEFAULT: "rgba(var(--heading) / <alpha-value>)",
+        soft: "rgba(var(--heading-soft) / <alpha-value>)",
+        sub: "rgba(var(--heading-sub) / <alpha-value>)",
+      },
+      ring: {
+        DEFAULT: "rgba(var(--ring) / <alpha-value>)",
+      },
+      symbol: {
+        DEFAULT: "rgba(var(--symbol) / <alpha-value>)",
+      },
+      accent: {
+        DEFAULT: "rgba(var(--accent) / <alpha-value>)",
+        soft: "rgba(var(--accent-soft) / <alpha-value>)",
+        strong: "rgba(var(--accent-strong) / <alpha-value>)",
+      },
+      special: {
+        back: {
+          DEFAULT: "rgba(var(--special-back) / <alpha-value>)",
+          weak: "rgba(var(--special-back-weak) / <alpha-value>)",
+          soft: "rgba(var(--special-back-soft) / <alpha-value>)",
+          strong: "rgba(var(--special-back-strong) / <alpha-value>)",
+          bold: "rgba(var(--special-back-bold) / <alpha-value>)",
+        },
+        fore: {
+          DEFAULT: "rgba(var(--special-fore) / <alpha-value>)",
+          weak: "rgba(var(--special-fore-weak) / <alpha-value>)",
+          soft: "rgba(var(--special-fore-soft) / <alpha-value>)",
+          strong: "rgba(var(--special-fore-strong) / <alpha-value>)",
+          bold: "rgba(var(--special-fore-bold) / <alpha-value>)",
+        },
       },
     },
     extend: {
