@@ -68,6 +68,19 @@
   }
 }
 
+.__action {
+  --background: var(--electric-violet-500);
+  --background-shadow: var(--electric-violet-600);
+  --color: var(--white);
+  --color-soft: inherit;
+  --color-strong: inherit;
+  --heading: inherit;
+  --heading-soft: inherit;
+  --heading-sub: inherit;
+  --ring: var(--electric-violet-600);
+  --symbol: var(--white);
+}
+
 @layer base {
   .__first {
     --background: var(--white);
@@ -96,19 +109,6 @@
     --heading-soft: var(--black-500);
     --ring: var(--white-200);
     --symbol: var(--black-800);
-  }
-
-  .__action {
-    --background: var(--electric-violet-500);
-    --background-shadow: var(--electric-violet-600);
-    --color: var(--white);
-    --color-soft: inherit;
-    --color-strong: inherit;
-    --heading: inherit;
-    --heading-soft: inherit;
-    --heading-sub: inherit;
-    --ring: var(--electric-violet-600);
-    --symbol: var(--white);
   }
 
   .__neutral {
