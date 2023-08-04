@@ -63,6 +63,10 @@ module.exports = {
       },
     },
     extend: {
+      screens: {
+        xs: "480px",
+        // => @media (min-width: 480px) { ... }
+      },
       fontFamily: {
         poppins: ["Poppins", "Inter", "sans-serif"],
       },

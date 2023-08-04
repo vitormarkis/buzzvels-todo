@@ -8,10 +8,3 @@
   width: 320px;
   height: 98px;
 }
-
-.heading {
-  background: rgb(var(--color));
-  background: linear-gradient(8deg, rgb(var(--color)) 21%, rgb(var(--color-strong)) 47%, rgb(var(--color)) 81%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
