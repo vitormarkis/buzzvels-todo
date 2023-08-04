@@ -87,8 +87,8 @@
     --background-shadow: var(--white-200);
     --color: var(--black-600);
     --color-soft: var(--black-900);
-    --color-strong: var(--black-400);
-    --heading: var(--black-300);
+    --color-strong: var(--black);
+    --heading: var(--black);
     --heading-soft: var(--black-400);
     --heading-sub: var(--white-900);
     --ring: var(--white-200);
@@ -124,8 +124,8 @@
     --background-shadow: var(--black-200);
     --color: var(--white-600);
     --color-soft: var(--white-900);
-    --color-strong: var(--white-400);
-    --heading: var(--white-300);
+    --color-strong: var(--white);
+    --heading: var(--white);
     --heading-sub: var(--black-900);
     --heading-soft: var(--white-400);
     --ring: var(--black-300);

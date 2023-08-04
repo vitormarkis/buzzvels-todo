@@ -1,11 +1,16 @@
 import { cn } from "@/lib/utils"
 import "./globals.css"
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
+import { Inter, Poppins } from "next/font/google"
 import { AppProviders } from "@/providers/root"
 import { ClerkProvider } from "@clerk/nextjs"
 
 const inter = Inter({ subsets: ["latin"] })
+const poppins = Poppins({
+  subsets: ["latin", "devanagari", "latin-ext"],
+  variable: "--poppins",
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+})
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -16,7 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className={cn(inter.className, "__first")}>
+        <body className={cn(inter.className, poppins.variable, "__first")}>
           <AppProviders>{children}</AppProviders>
         </body>
       </html>
