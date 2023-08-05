@@ -1,4 +1,4 @@
-import React, { createContext, useContext } from "react"
+import React, { createContext, useContext, useState } from "react"
 
 type ComponentWithChildren = {
   children: React.ReactNode
@@ -6,19 +6,26 @@ type ComponentWithChildren = {
 
 export type IUserInfoContext = {
   userId: string | null
+  setUserId: React.Dispatch<React.SetStateAction<string | null>>
   headers: Headers
 }
 
 export const UserInfoContext = createContext({} as IUserInfoContext)
 
-export function UserInfoProvider({ children, userId }: ComponentWithChildren & IUserInfoContext) {
+export function UserInfoProvider({
+  children,
+  userId: userIdProp,
+}: ComponentWithChildren & Pick<IUserInfoContext, "userId">) {
+  const [userId, setUserId] = useState(userIdProp)
+
   const headers = new Headers()
-  headers.append("Authorization", `Bearer ${userId}`)
+  if (userId) headers.append("Authorization", `Bearer ${userId}`)
 
   return (
     <UserInfoContext.Provider
       value={{
         userId,
+        setUserId,
         headers,
       }}
     >

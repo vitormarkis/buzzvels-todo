@@ -4,7 +4,7 @@ import { cookies } from "next/headers"
 import { getAuth } from "@clerk/nextjs/server"
 
 export default authMiddleware({
-  publicRoutes: ["/"],
+  publicRoutes: ["/", "/(api|trpc)(.*)"],
 })
 
 export const config = {

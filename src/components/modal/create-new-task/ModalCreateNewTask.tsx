@@ -50,16 +50,14 @@ export const ModalCreateNewTask = React.forwardRef<
     resolver: zodResolver(createNewTaskFormSchema),
   })
 
-  const { control } = methods
-
   const submitHandler: SubmitHandler<CreateNewTaskForm> = async formData => {
-    const res = await fetch("/api/endpoint", {
+    const res = await fetch("/api/task", {
       body: JSON.stringify(formData),
       method: "POST",
       headers,
     })
 
-    console.log(res)
+    console.log(await res.json())
   }
 
   return (
@@ -81,7 +79,7 @@ export const ModalCreateNewTask = React.forwardRef<
             className="[&>div>label]:mb-1.5 space-y-4"
           >
             <FormField
-              control={control}
+              control={methods.control}
               name="task"
               render={({ field }) => (
                 <FormItem>
@@ -100,7 +98,7 @@ export const ModalCreateNewTask = React.forwardRef<
 
             <div className="space-y-2">
               <FormField
-                control={control}
+                control={methods.control}
                 name="hasDeadlineDate"
                 render={({ field }) => (
                   <FormItem className="flex gap-2 items-center space-y-0">
@@ -119,7 +117,7 @@ export const ModalCreateNewTask = React.forwardRef<
                 )}
               />
               <FormField
-                control={control}
+                control={methods.control}
                 name="endDate"
                 render={({ field }) => (
                   <FormItem>
