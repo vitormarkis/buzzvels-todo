@@ -45,6 +45,11 @@ module.exports = {
         soft: "rgba(var(--accent-soft) / <alpha-value>)",
         strong: "rgba(var(--accent-strong) / <alpha-value>)",
       },
+      block: {
+        DEFAULT: "rgba(var(--block) / <alpha-value>)",
+        soft: "rgba(var(--block-soft) / <alpha-value>)",
+        strong: "rgba(var(--block-strong) / <alpha-value>)",
+      },
       special: {
         back: {
           DEFAULT: "rgba(var(--special-back) / <alpha-value>)",

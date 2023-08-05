@@ -58,7 +58,7 @@ export const Header = React.forwardRef<React.ElementRef<"header">, HeaderProps>(
                   <IconMoon className="hidden dark:block" />
                 </Button>
               </PopoverThemeSwitcher>
-              <UserButton />
+              <UserButton afterSignOutUrl="/" />
             </SlightContainer>
           </div>
         </CenteredContainer>

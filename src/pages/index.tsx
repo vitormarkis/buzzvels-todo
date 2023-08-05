@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils"
 import { CenteredContainer } from "@/components/container/centered-container/CenteredContainer"
 import { Header, Sidebar } from "@/components/organisms"
 import { IconPlus } from "@/components/icons"
+import { ModalCreateNewTask } from "@/components/modal"
 
 export default function Home() {
   return (
@@ -16,13 +17,15 @@ export default function Home() {
           <Sidebar />
         </aside>
         <main className="flex-1 py-12">
-          <Button
-            size="xl"
-            className="__neutral mx-auto"
-          >
-            <IconPlus size={16} />
-            New task
-          </Button>
+          <ModalCreateNewTask>
+            <Button
+              size="xl"
+              className="__neutral mx-auto"
+            >
+              <IconPlus size={16} />
+              New task
+            </Button>
+          </ModalCreateNewTask>
         </main>
       </CenteredContainer>
     </>
