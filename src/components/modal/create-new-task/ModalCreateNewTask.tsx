@@ -27,9 +27,9 @@ import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { Checkbox } from "@/components/ui/checkbox"
-import { GetServerSideProps } from "next"
 import { useUserInfo } from "@/contexts/user-info/userInfoContext"
 import { useAuth } from "@clerk/nextjs"
+import { useQueryClient } from "@tanstack/react-query"
 
 export type ModalCreateNewTaskProps = React.ComponentPropsWithoutRef<"div"> & {
   children: React.ReactNode
@@ -39,8 +39,12 @@ export const ModalCreateNewTask = React.forwardRef<
   React.ElementRef<"div">,
   ModalCreateNewTaskProps
 >(function ModalCreateNewTaskComponent({ children, ...props }, ref) {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
   const [hasDeadlineDate, setHasDeadlineDate] = useState<boolean | "indeterminate">(false)
   const { headers } = useUserInfo()
+  const { userId } = useAuth()
+  const queryClient = useQueryClient()
 
   const methods = useForm<CreateNewTaskForm>({
     defaultValues: {
@@ -57,13 +61,23 @@ export const ModalCreateNewTask = React.forwardRef<
       headers,
     })
 
-    console.log(await res.json())
+    if (res.ok) {
+      queryClient.invalidateQueries(["tasksIds", userId])
+      setIsModalOpen(false)
+    }
   }
 
   return (
-    <Dialog>
+    <Dialog
+      open={isModalOpen}
+      onOpenChange={setIsModalOpen}
+    >
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent
+        onCloseAutoFocus={() => {
+          methods.reset()
+          setHasDeadlineDate(false)
+        }}
         {...props}
         className={cn("space-y-2", props.className)}
         ref={ref}
@@ -107,7 +121,9 @@ export const ModalCreateNewTask = React.forwardRef<
                         onBlur={field.onBlur}
                       />
                     </FormControl>
-                    <FormLabel className="font-normal">Set a deadline date for the task</FormLabel>
+                    <FormLabel className="font-normal text-color-soft">
+                      Set a deadline date for the task
+                    </FormLabel>
                   </FormItem>
                 )}
               />
@@ -122,8 +138,8 @@ export const ModalCreateNewTask = React.forwardRef<
                           <FormControl>
                             <Button
                               className={cn(
-                                "__two w-full pl-3 text-left font-normal",
-                                !field.value && "text-color-strong"
+                                "__two border text-color w-full pl-3 text-left font-normal",
+                                !field.value && "text-color-soft"
                               )}
                               disabled={!hasDeadlineDate}
                             >
