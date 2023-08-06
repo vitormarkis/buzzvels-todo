@@ -6,9 +6,18 @@ export const createNewTaskFormSchema = z
     endDate: z.date().nullable().default(null),
     hasDeadlineDate: z.boolean().default(false),
   })
-  .transform(({ hasDeadlineDate, ...state }) => ({
-    ...state,
-    endDate: hasDeadlineDate ? state.endDate?.getTime() : null,
-  }))
+  .transform(({ hasDeadlineDate, ...state }) => {
+    const getEndDate = () => {
+      if (!hasDeadlineDate || !state.endDate) return null
+      return state.endDate.getTime()
+    }
+
+    const endDate = getEndDate()
+
+    return {
+      ...state,
+      endDate,
+    }
+  })
 
 export type CreateNewTaskForm = z.input<typeof createNewTaskFormSchema>

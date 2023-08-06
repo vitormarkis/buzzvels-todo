@@ -3,17 +3,32 @@ import { cn } from "@/lib/utils"
 import st from "./Header.module.css"
 import { PopoverThemeSwitcher } from "@/components/theme-switcher/PopoverThemeSwitcher"
 import { Button } from "@/components/ui/button"
-import { IconMoon, IconSun } from "@/components/icons"
-import { UserButton } from "@clerk/nextjs"
+import { IconMoon, IconSignout, IconSun } from "@/components/icons"
+import { UserButton, useAuth, useClerk, useUser } from "@clerk/nextjs"
 import { IconList } from "@/components/icons/IconList"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Sidebar } from "@/components/organisms"
 import { SlightContainer, CenteredContainer } from "@/components/container"
+import Link from "next/link"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useRouter } from "next/router"
 
 export type HeaderProps = React.ComponentPropsWithoutRef<"header"> & {}
 
 export const Header = React.forwardRef<React.ElementRef<"header">, HeaderProps>(
   function HeaderComponent({ ...props }, ref) {
+    const { signOut } = useClerk()
+    const { user, isSignedIn } = useUser()
+    const router = useRouter()
+
     return (
       <header
         {...props}
@@ -53,12 +68,49 @@ export const Header = React.forwardRef<React.ElementRef<"header">, HeaderProps>(
           <div className="flex-1 flex items-center justify-end">
             <SlightContainer>
               <PopoverThemeSwitcher>
-                <Button className="h-8 w-8 rounded-full p-0">
+                <Button className="h-10 w-10 rounded-full p-0">
                   <IconSun className="block dark:hidden" />
                   <IconMoon className="hidden dark:block" />
                 </Button>
               </PopoverThemeSwitcher>
-              <UserButton afterSignOutUrl="/" />
+              {isSignedIn ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger>
+                    <Avatar>
+                      <AvatarImage src={user.imageUrl} />
+                      <AvatarFallback>{`
+                        ${user.firstName?.charAt(0).toUpperCase()}${user.lastName
+                        ?.charAt(0)
+                        .toUpperCase()}
+                        `}</AvatarFallback>
+                    </Avatar>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {/* <DropdownMenuLabel>My Account</DropdownMenuLabel> */}
+                    {/* <DropdownMenuSeparator /> */}
+                    <DropdownMenuItem
+                      onClick={() => {
+                        router.push("/sign-in")
+                        void signOut()
+                      }}
+                    >
+                      <IconSignout
+                        size={16}
+                        style={{ color: "inherit" }}
+                      />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button
+                  asChild
+                  className="__action rounded-full"
+                >
+                  <Link href="/sign-in">Sign in</Link>
+                </Button>
+              )}
+              {/* <UserButton afterSignOutUrl="/" /> */}
             </SlightContainer>
           </div>
         </CenteredContainer>

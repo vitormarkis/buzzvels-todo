@@ -28,8 +28,8 @@ import { CalendarIcon } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { Checkbox } from "@/components/ui/checkbox"
 import { GetServerSideProps } from "next"
-import { getAuth } from "@clerk/nextjs/server"
 import { useUserInfo } from "@/contexts/user-info/userInfoContext"
+import { useAuth } from "@clerk/nextjs"
 
 export type ModalCreateNewTaskProps = React.ComponentPropsWithoutRef<"div"> & {
   children: React.ReactNode
@@ -68,11 +68,6 @@ export const ModalCreateNewTask = React.forwardRef<
         className={cn("space-y-2", props.className)}
         ref={ref}
       >
-        <DialogHeader>
-          <DialogTitle>Create new task</DialogTitle>
-          <DialogDescription>Insert the name of the task you're willing to do.</DialogDescription>
-        </DialogHeader>
-
         <Form {...methods}>
           <form
             onSubmit={methods.handleSubmit(submitHandler)}

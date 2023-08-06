@@ -10,7 +10,7 @@ export const SlightContainer = React.forwardRef<React.ElementRef<"div">, SlightC
     return (
       <div
         {...props}
-        className={cn("flex p-1.5 gap-1.5 rounded-full border", props.className)}
+        className={cn("flex items-center p-1.5 gap-1.5 rounded-full border", props.className)}
         ref={ref}
       >
         {children}

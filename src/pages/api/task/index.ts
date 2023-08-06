@@ -1,9 +1,6 @@
+import { redis } from "@/lib/redis"
 import { NextApiRequest, NextApiResponse } from "next"
-
-const users = {
-  user_2TVlSS3DhS6ia4gx0jIYr8DPlh3: "Realize",
-  user_2TU41jIExKgUDaqRRPbuIa6TJrm: "Vitor Markis2369",
-}
+import { nanoid } from "nanoid"
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
@@ -14,12 +11,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         message: "Invalid authentication.",
       })
     }
-    const body = JSON.parse(req.body)
-    const author = users[userId as keyof typeof users] ?? "Desconhecido"
 
-    return res.status(200).json({
-      body,
-      author,
+    const taskBody = JSON.parse(req.body)
+
+    const taskId = `task_${nanoid()}`
+
+    const task = {
+      ...taskBody,
+      createdAt: new Date().getTime(),
+    }
+
+    await redis.rpush(`tasks:${userId}`, taskId)
+    await redis.hset(taskId, task)
+
+    return res.status(201).json({
+      msg: "Ok",
     })
   }
 }
