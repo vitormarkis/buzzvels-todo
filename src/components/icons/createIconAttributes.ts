@@ -7,7 +7,7 @@ export const createIconAttributes = ({ className, style, size = 18, ...props }: 
 
   return {
     ...props,
-    className: cn("h-[var(--iconSize)] w-[var(--iconSize)] text-symbol", className),
+    className: cn("h-[var(--iconSize)] w-[var(--iconSize)] text-symbol fill-symbol", className),
     style: cssVariables(["iconSize", sizeInRem, "rem"], style),
   }
 }

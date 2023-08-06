@@ -6,8 +6,14 @@ import { Header, Sidebar } from "@/components/organisms"
 import { IconPlus } from "@/components/icons"
 import { ModalCreateNewTask } from "@/components/modal"
 import { redis } from "@/lib/redis"
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAuth } from "@clerk/nextjs"
+import { TaskSession, taskSchema } from "@/fetchs/tasks/schema"
+import { z } from "zod"
+import { Checkbox } from "@/components/ui/checkbox"
+import { PadWrapper } from "@/components/container/pad-container/PadWrapper"
+import { PadContainer } from "@/components/container/pad-container/PadContainer"
+import { ToDo } from "@/components/molecules/to-do/ToDo"
 
 export default function Home() {
   const { userId } = useAuth()
@@ -15,7 +21,8 @@ export default function Home() {
     queryKey: ["tasksIds", userId],
     queryFn: async () => {
       const tasksIds = await redis.lrange(`tasks:${userId}`, 0, 9)
-      const tasks = await Promise.all(tasksIds.map(taskId => redis.hgetall(taskId)))
+      const unparsedTasks = await Promise.all(tasksIds.map(taskId => redis.hgetall(taskId)))
+      const tasks = z.array(taskSchema).parse(unparsedTasks)
       return tasks
     },
     staleTime: 60 * 1000,
@@ -30,7 +37,7 @@ export default function Home() {
         <aside className="hidden md:flex h-full max-h-screen w-[200px] border-r">
           <Sidebar />
         </aside>
-        <main className="flex-1 py-12">
+        <main className="flex-1 py-12 space-y-6 px-6">
           <ModalCreateNewTask>
             <Button
               size="xl"
@@ -40,7 +47,15 @@ export default function Home() {
               New task
             </Button>
           </ModalCreateNewTask>
-          <pre>{JSON.stringify(tasks, null, 2)}</pre>
+          <PadWrapper className="__two">
+            {tasks?.map(task => (
+              <ToDo
+                key={task.task}
+                className="__first"
+                task={task}
+              />
+            ))}
+          </PadWrapper>
         </main>
       </CenteredContainer>
     </>

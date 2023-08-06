@@ -19,6 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const task = {
       ...taskBody,
       createdAt: new Date().getTime(),
+      id: taskId,
     }
 
     await redis.rpush(`tasks:${userId}`, taskId)
