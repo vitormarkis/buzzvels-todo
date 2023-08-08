@@ -1,0 +1,14 @@
+.outline:has(input:focus)::before {
+  content: "";
+  position: absolute;
+  padding: 2px;
+  inset: -2px;
+  background-color: rgba(var(--accent) / 1);
+  z-index: 1;
+  pointer-events: none;
+
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#dad6d6 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  -mask-composite: xor;
+}

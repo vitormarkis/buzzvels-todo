@@ -22,8 +22,15 @@ export default function Home() {
     queryFn: async () => {
       const tasksIds = await redis.lrange(`tasks:${userId}`, 0, 9)
       const unparsedTasks = await Promise.all(tasksIds.map(taskId => redis.hgetall(taskId)))
-      const tasks = z.array(taskSchema).parse(unparsedTasks)
-      return tasks
+      try {
+        const tasks = await z.array(taskSchema).parseAsync(unparsedTasks)
+        return tasks
+      } catch (error) {
+        console.log({
+          unparsedTasks,
+          error,
+        })
+      }
     },
     staleTime: 60 * 1000,
   })
