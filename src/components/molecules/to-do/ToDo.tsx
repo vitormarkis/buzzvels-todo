@@ -29,6 +29,13 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog"
 import { EditableLabel } from "@/components/editable-label/EditableLabel"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import { IconListTree } from "@/components/icons/IconListTree"
 
 type MutateToggleTask = { taskId: string; isDone: boolean }
 
@@ -92,6 +99,9 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
   const handleChangeTaskName = () => {
     const tasks: TaskSession[] | undefined = queryClient.getQueryData(["tasksIds", userId])
     if (!tasks) return
+    const editingTask = tasks.find(currentTask => task.id === currentTask.id)
+    if (!editingTask) return
+    if (editingTask.task === text) return
 
     const newTasks = tasks.map(currentTask =>
       currentTask.id === task.id ? { ...currentTask, task: text } : currentTask
@@ -105,82 +115,207 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
   return (
     <PadContainer
       {...props}
-      className={cn("justify-between", props.className)}
+      className={cn("justify-between relative pr-3.5", props.className)}
       ref={ref}
     >
-      <div className="flex items-center gap-2 flex-1">
+      {/* <div className="bg-background absolute z-10 top-full left-0 right-0 border pt-8 pb-3 px-6 flex items-center gap-2 flex-1">
         <Checkbox
           checked={task.isDone}
           id={toggleIsDoneId}
           onCheckedChange={isDone => handleToggleTodo({ isDone: !!isDone, taskId: task.id })}
-          size="big"
         />
         <EditableLabel
           state={[text, setText]}
           data-completed={task.isDone}
-          className="data-[completed=true]:text-color data-[completed=true]:line-through text-lg"
+          className="data-[completed=true]:text-color data-[completed=true]:line-through grow text-lg"
           onAction={handleChangeTaskName}
         >
           {text}
         </EditableLabel>
-      </div>
-      <div className="flex">
-        <DropdownMenu>
-          <DropdownMenuTrigger>
-            <Button className="h-8 w-8 p-0">
-              <IconThreeDotsVertical className="text-color-strong" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="h-9 px-2 py-1.5 cursor-default justify-start w-full font-normal"
-                >
-                  <IconTrash
-                    size={16}
-                    style={{ color: "inherit" }}
-                  />
-                  <span>Delete</span>
+      </div> */}
+      <Accordion
+        type="single"
+        collapsible
+        className="flex-1"
+      >
+        <AccordionItem
+          value="item-1"
+          className="flex flex-col"
+        >
+          <div className="flex">
+            <div className="flex items-center gap-2 flex-1">
+              <Checkbox
+                checked={task.isDone}
+                id={toggleIsDoneId}
+                onCheckedChange={isDone => handleToggleTodo({ isDone: !!isDone, taskId: task.id })}
+                size="big"
+              />
+              <EditableLabel
+                state={[text, setText]}
+                data-completed={task.isDone}
+                className="flex-1 py-4 data-[completed=true]:text-color data-[completed=true]:line-through text-lg"
+                onAction={handleChangeTaskName}
+              >
+                {text}
+              </EditableLabel>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <AccordionTrigger asChild>
+                <Button className="h-8 w-8 p-0">
+                  <IconListTree />
                 </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This action cannot be undone. This will permanently this to-do.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel asChild>
-                    <Button
-                      variant="default"
-                      className="__neutral"
-                    >
-                      <span>Cancel</span>
-                    </Button>
-                  </AlertDialogCancel>
-                  <AlertDialogAction asChild>
-                    <Button
-                      onClick={() => handleDeleteTodo({ taskId: task.id })}
-                      className="__block"
-                    >
-                      <IconTrash
-                        size={16}
-                        style={{ color: "inherit" }}
-                      />
-                      <span>Confirm</span>
-                    </Button>
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+              </AccordionTrigger>
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <Button className="h-8 w-8 p-0">
+                    <IconThreeDotsVertical className="text-color-strong" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="h-9 px-2 py-1.5 cursor-default justify-start w-full font-normal"
+                      >
+                        <IconTrash
+                          size={16}
+                          style={{ color: "inherit" }}
+                        />
+                        <span>Delete</span>
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently this to-do.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel asChild>
+                          <Button
+                            variant="default"
+                            className="__neutral"
+                          >
+                            <span>Cancel</span>
+                          </Button>
+                        </AlertDialogCancel>
+                        <AlertDialogAction asChild>
+                          <Button
+                            onClick={() => handleDeleteTodo({ taskId: task.id })}
+                            className="__block"
+                          >
+                            <IconTrash
+                              size={16}
+                              style={{ color: "inherit" }}
+                            />
+                            <span>Confirm</span>
+                          </Button>
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+          <AccordionContent className="flex data-[state=open]:pb-4 w-full">
+            <div className="px-3">
+              <div className="h-full border-r" />
+            </div>
+            <div className="flex-1 flex flex-col gap-1">
+              <div className="flex items-center px-2 gap-1.5">
+                <Checkbox
+                  checked={false}
+                  id="cb-1"
+                  onCheckedChange={() => {}}
+                />
+                <EditableLabel
+                  state={["create endpoint", () => {}]}
+                  data-completed={false}
+                  className="data-[completed=true]:text-color data-[completed=true]:line-through grow"
+                  onAction={() => {}}
+                >
+                  {text}
+                </EditableLabel>
+              </div>
+              <div className="flex items-center px-2 gap-1.5">
+                <Checkbox
+                  checked={false}
+                  id="cb-1"
+                  onCheckedChange={() => {}}
+                />
+                <EditableLabel
+                  state={["create function to append subtasks to each task", () => {}]}
+                  data-completed={false}
+                  className="data-[completed=true]:text-color data-[completed=true]:line-through grow"
+                  onAction={() => {}}
+                >
+                  {text}
+                </EditableLabel>
+              </div>
+              <div className="flex items-center px-2 gap-1.5">
+                <Checkbox
+                  checked={false}
+                  id="cb-1"
+                  onCheckedChange={() => {}}
+                />
+                <EditableLabel
+                  state={["connect components to be in sync with cache", () => {}]}
+                  data-completed={false}
+                  className="data-[completed=true]:text-color data-[completed=true]:line-through grow"
+                  onAction={() => {}}
+                >
+                  {text}
+                </EditableLabel>
+              </div>
+              <div className="flex items-center px-2 gap-1.5">
+                <Checkbox
+                  checked={false}
+                  id="cb-1"
+                  onCheckedChange={() => {}}
+                />
+                <EditableLabel
+                  state={["refactor the components, starting with subtasks to-do", () => {}]}
+                  data-completed={false}
+                  className="data-[completed=true]:text-color data-[completed=true]:line-through grow"
+                  onAction={() => {}}
+                >
+                  {text}
+                </EditableLabel>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </PadContainer>
   )
 })
 
+export type ToDoSkeletonProps = React.ComponentPropsWithoutRef<"div"> & {}
+
+export const ToDoSkeleton = React.forwardRef<React.ElementRef<"div">, ToDoSkeletonProps>(
+  function ToDoSkeletonComponent({ children, ...props }, ref) {
+    return (
+      <PadContainer
+        {...props}
+        className={cn("__first justify-between animate-pulse", props.className)}
+        ref={ref}
+      >
+        <div className="flex items-center gap-2 flex-1">
+          <Checkbox
+            checked={false}
+            size="big"
+          />
+          <div className="w-full px-4 py-2">
+            <div className="__two h-5 rounded bg-background animate-pulse w-full max-w-[14rem]" />
+          </div>
+        </div>
+      </PadContainer>
+    )
+  }
+)
+
+ToDoSkeleton.displayName = "ToDoSkeleton"
 ToDo.displayName = "ToDo"

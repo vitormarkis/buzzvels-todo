@@ -32,7 +32,7 @@ export const Header = React.forwardRef<React.ElementRef<"header">, HeaderProps>(
     return (
       <header
         {...props}
-        className={cn("border-b bg-background", props.className)}
+        className={cn("border-b bg-background sticky top-0 z-10", props.className)}
         ref={ref}
       >
         <CenteredContainer className="h-16 flex justify-between gap-4">

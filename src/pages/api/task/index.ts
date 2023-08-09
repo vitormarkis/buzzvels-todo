@@ -25,8 +25,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await redis.rpush(`tasks:${userId}`, taskId)
     await redis.hset(taskId, task)
 
-    return res.status(201).json({
-      msg: "Ok",
-    })
+    return res.status(201).json(task)
   }
 }

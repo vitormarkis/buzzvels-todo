@@ -29,22 +29,20 @@ import { Calendar } from "@/components/ui/calendar"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useUserInfo } from "@/contexts/user-info/userInfoContext"
 import { useAuth } from "@clerk/nextjs"
-import { useQueryClient } from "@tanstack/react-query"
+import { UseMutateFunction, useMutation, useQueryClient } from "@tanstack/react-query"
+import { z } from "zod"
 
 export type ModalCreateNewTaskProps = React.ComponentPropsWithoutRef<"div"> & {
   children: React.ReactNode
+  mutate: UseMutateFunction<{}, {}, CreateNewTaskForm>
 }
 
 export const ModalCreateNewTask = React.forwardRef<
   React.ElementRef<"div">,
   ModalCreateNewTaskProps
->(function ModalCreateNewTaskComponent({ children, ...props }, ref) {
+>(function ModalCreateNewTaskComponent({ mutate, children, ...props }, ref) {
   const [isModalOpen, setIsModalOpen] = useState(false)
-
   const [hasDeadlineDate, setHasDeadlineDate] = useState<boolean | "indeterminate">(false)
-  const { headers } = useUserInfo()
-  const { userId } = useAuth()
-  const queryClient = useQueryClient()
 
   const methods = useForm<CreateNewTaskForm>({
     defaultValues: {
@@ -55,16 +53,8 @@ export const ModalCreateNewTask = React.forwardRef<
   })
 
   const submitHandler: SubmitHandler<CreateNewTaskForm> = async formData => {
-    const res = await fetch("/api/task", {
-      body: JSON.stringify(formData),
-      method: "POST",
-      headers,
-    })
-
-    if (res.ok) {
-      queryClient.invalidateQueries(["tasksIds", userId])
-      setIsModalOpen(false)
-    }
+    setIsModalOpen(false)
+    mutate(formData)
   }
 
   return (

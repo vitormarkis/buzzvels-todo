@@ -11,7 +11,7 @@ export const PadContainer = React.forwardRef<React.ElementRef<"div">, PadContain
       <div
         {...props}
         className={cn(
-          "h-14 flex items-center gap-3 px-6 rounded-[0.625rem] bg-background text-color-strong",
+          "flex items-center gap-3 px-6 rounded-[0.625rem] bg-background text-color-strong",
           props.className
         )}
         ref={ref}

@@ -46,7 +46,8 @@ export const EditableLabel = React.forwardRef<React.ElementRef<"td">, EditableLa
       <td
         {...props}
         className={cn(
-          "px-4 py-2 align-middle [&:has([role=checkbox])]:pr-0",
+          "px-1.5 py-1",
+          "align-middle [&:has([role=checkbox])]:pr-0",
           "relative text-color",
           "outline-transparent",
           st.outline,
@@ -66,7 +67,7 @@ export const EditableLabel = React.forwardRef<React.ElementRef<"td">, EditableLa
             ref={inputRef}
             type="text"
             className={cn(
-              "w-auto px-4 bg-background absolute inset-0 rounded-[inherit]",
+              "w-auto px-1.5 bg-background absolute inset-0 rounded-[inherit]",
               "outline-none",
               props.className
             )}
