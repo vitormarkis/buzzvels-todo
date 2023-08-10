@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils"
 import { PadContainer } from "@/components/container/pad-container/PadContainer"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { TaskSession } from "@/fetchs/tasks/schema"
+import { SubtaskSession, TaskSession } from "@/fetchs/tasks/schema"
 import { redis } from "@/lib/redis"
 import { Label } from "@/components/ui/label"
 import { useAuth } from "@clerk/nextjs"
@@ -36,8 +36,10 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion"
 import { IconListTree } from "@/components/icons/IconListTree"
-
+import { TodoProvider, TodoContainer, TodoCheckbox, TodoEditableLabel } from "@/components/app/todo"
+import { CheckedState } from "@radix-ui/react-checkbox"
 type MutateToggleTask = { taskId: string; isDone: boolean }
+type MutateToggleSubtask = { subtask: SubtaskSession; isDone: CheckedState }
 
 type MutateDeleteTask = { taskId: string }
 
@@ -72,6 +74,30 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
     },
   })
 
+  const { mutate: toggleSubtaskMutate } = useMutation<{}, {}, MutateToggleSubtask>({
+    mutationFn: ({ isDone, subtask }) => redis.hset(subtask.id, { isDone }),
+    onMutate: ({ isDone, subtask }) => {
+      const tasks: TaskSession[] | undefined = queryClient.getQueryData(["tasksIds", userId])
+      if (!tasks) return
+      const newTasks = tasks.map((task): TaskSession => {
+        return task.id === subtask.taskId
+          ? {
+              ...task,
+              subtasks: task.subtasks.map(currentSubtask =>
+                currentSubtask.id === subtask.id
+                  ? {
+                      ...currentSubtask,
+                      isDone: typeof isDone === "string" ? false : isDone,
+                    }
+                  : currentSubtask
+              ),
+            }
+          : task
+      })
+      queryClient.setQueryData(["tasksIds", userId], newTasks)
+    },
+  })
+
   const { mutate: deleteTodoMutate } = useMutation<{}, {}, MutateDeleteTask>({
     mutationFn: async ({ taskId }) => {
       const [res] = await Promise.all([redis.del(taskId), redis.lrem(`tasks:${userId}`, 1, taskId)])
@@ -89,6 +115,13 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
     toggleTodoMutate({
       isDone,
       taskId,
+    })
+  }
+
+  const handleToggleSubtask = ({ isDone, subtask }: MutateToggleSubtask) => {
+    toggleSubtaskMutate({
+      isDone,
+      subtask,
     })
   }
 
@@ -118,21 +151,6 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
       className={cn("justify-between relative pr-3.5", props.className)}
       ref={ref}
     >
-      {/* <div className="bg-background absolute z-10 top-full left-0 right-0 border pt-8 pb-3 px-6 flex items-center gap-2 flex-1">
-        <Checkbox
-          checked={task.isDone}
-          id={toggleIsDoneId}
-          onCheckedChange={isDone => handleToggleTodo({ isDone: !!isDone, taskId: task.id })}
-        />
-        <EditableLabel
-          state={[text, setText]}
-          data-completed={task.isDone}
-          className="data-[completed=true]:text-color data-[completed=true]:line-through grow text-lg"
-          onAction={handleChangeTaskName}
-        >
-          {text}
-        </EditableLabel>
-      </div> */}
       <Accordion
         type="single"
         collapsible
@@ -146,18 +164,16 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
             <div className="flex items-center gap-2 flex-1">
               <Checkbox
                 checked={task.isDone}
-                id={toggleIsDoneId}
                 onCheckedChange={isDone => handleToggleTodo({ isDone: !!isDone, taskId: task.id })}
                 size="big"
               />
               <EditableLabel
                 state={[text, setText]}
                 data-completed={task.isDone}
+                taskId={task.id}
                 className="flex-1 py-4 data-[completed=true]:text-color data-[completed=true]:line-through text-lg"
                 onAction={handleChangeTaskName}
-              >
-                {text}
-              </EditableLabel>
+              />
             </div>
             <div className="flex items-center gap-1.5">
               <AccordionTrigger asChild>
@@ -225,66 +241,25 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
               <div className="h-full border-r" />
             </div>
             <div className="flex-1 flex flex-col gap-1">
-              <div className="flex items-center px-2 gap-1.5">
-                <Checkbox
-                  checked={false}
-                  id="cb-1"
-                  onCheckedChange={() => {}}
-                />
-                <EditableLabel
-                  state={["create endpoint", () => {}]}
-                  data-completed={false}
-                  className="data-[completed=true]:text-color data-[completed=true]:line-through grow"
-                  onAction={() => {}}
-                >
-                  {text}
-                </EditableLabel>
-              </div>
-              <div className="flex items-center px-2 gap-1.5">
-                <Checkbox
-                  checked={false}
-                  id="cb-1"
-                  onCheckedChange={() => {}}
-                />
-                <EditableLabel
-                  state={["create function to append subtasks to each task", () => {}]}
-                  data-completed={false}
-                  className="data-[completed=true]:text-color data-[completed=true]:line-through grow"
-                  onAction={() => {}}
-                >
-                  {text}
-                </EditableLabel>
-              </div>
-              <div className="flex items-center px-2 gap-1.5">
-                <Checkbox
-                  checked={false}
-                  id="cb-1"
-                  onCheckedChange={() => {}}
-                />
-                <EditableLabel
-                  state={["connect components to be in sync with cache", () => {}]}
-                  data-completed={false}
-                  className="data-[completed=true]:text-color data-[completed=true]:line-through grow"
-                  onAction={() => {}}
-                >
-                  {text}
-                </EditableLabel>
-              </div>
-              <div className="flex items-center px-2 gap-1.5">
-                <Checkbox
-                  checked={false}
-                  id="cb-1"
-                  onCheckedChange={() => {}}
-                />
-                <EditableLabel
-                  state={["refactor the components, starting with subtasks to-do", () => {}]}
-                  data-completed={false}
-                  className="data-[completed=true]:text-color data-[completed=true]:line-through grow"
-                  onAction={() => {}}
-                >
-                  {text}
-                </EditableLabel>
-              </div>
+              {task.subtasks.length > 0 ? (
+                task.subtasks.map(subtask => (
+                  <TodoProvider
+                    onLabelChange={newValue =>
+                      console.log(`Label received a new value: ${newValue}.`)
+                    }
+                    onCheckedChange={isDone => handleToggleSubtask({ isDone, subtask })}
+                    checked={subtask.isDone}
+                    initialLabelValue={subtask.task}
+                  >
+                    <TodoContainer>
+                      <TodoCheckbox />
+                      <TodoEditableLabel disableActionOnNoChange />
+                    </TodoContainer>
+                  </TodoProvider>
+                ))
+              ) : (
+                <span className="text-xs text-color-soft">No subtasks</span>
+              )}
             </div>
           </AccordionContent>
         </AccordionItem>

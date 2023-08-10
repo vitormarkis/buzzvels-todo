@@ -8,16 +8,23 @@ import React, {
 } from "react"
 import { cn } from "@/lib/utils"
 import st from "./EditableLabel.module.css"
+import { handleKeyPressed } from "@/utils/units/handleKeyUp"
 
 export type EditableLabelProps = React.ComponentPropsWithoutRef<"td"> & {
   selectText?: boolean
   state: [value: string, setValue: Dispatch<SetStateAction<string>>]
-  onAction: () => void
+  onAction: (newValue: string) => void
+  taskId?: string
+  disableActionOnNoChange?: boolean
 }
 
 export const EditableLabel = React.forwardRef<React.ElementRef<"td">, EditableLabelProps>(
-  function EditableLabelComponent({ onAction, selectText, tabIndex = 0, state, ...props }, ref) {
+  function EditableLabelComponent(
+    { taskId, onAction, selectText, tabIndex = 0, disableActionOnNoChange, state, ...props },
+    ref
+  ) {
     const [text, setText] = state
+    const [previousValue, setPreviousValue] = useState(text)
     const [isEditing, setIsEditing] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null)
 
@@ -33,17 +40,56 @@ export const EditableLabel = React.forwardRef<React.ElementRef<"td">, EditableLa
       }
     }
 
-    const handleOnChange = (e: ChangeEvent<HTMLInputElement>) => {
-      setText(e.target.value)
+    const onActionCallback: typeof onAction = newValue => {
+      if (onAction) {
+        if (disableActionOnNoChange && text === previousValue) return
+        onAction(newValue)
+      }
     }
 
-    const handleOnBlur = (event: React.FocusEvent<HTMLInputElement, Element>) => {
-      if (onAction) onAction()
-      setIsEditing(false)
+    const wrapperHandlers = {
+      onDoubleClick(event: React.MouseEvent<HTMLDivElement, MouseEvent>) {
+        editInput()
+      },
+      onKeyUp(event: React.KeyboardEvent<HTMLInputElement>) {
+        const actions = {
+          Enter() {
+            if (!isEditing) editInput()
+          },
+        } as const
+
+        handleKeyPressed(event, actions)
+      },
+    }
+
+    const inputHandlers = {
+      handleOnKeyUp(event: React.KeyboardEvent<HTMLInputElement>) {
+        const actions = {
+          Enter() {
+            setIsEditing(false)
+            onActionCallback(text)
+          },
+        } as const
+
+        handleKeyPressed(event, actions)
+      },
+      handleOnFocus(event: React.FocusEvent<HTMLInputElement, Element>) {
+        if (disableActionOnNoChange) setPreviousValue(event.target.value)
+      },
+      handleOnBlur(event: React.FocusEvent<HTMLInputElement, Element>) {
+        setIsEditing(false)
+        onActionCallback(text)
+      },
+      handleOnChange(event: ChangeEvent<HTMLInputElement>) {
+        return setText(event.target.value)
+      },
+      handleOnDoubleClick(event: React.MouseEvent<HTMLInputElement, MouseEvent>) {
+        event.stopPropagation()
+      },
     }
 
     return (
-      <td
+      <div
         {...props}
         className={cn(
           "px-1.5 py-1",
@@ -55,11 +101,9 @@ export const EditableLabel = React.forwardRef<React.ElementRef<"td">, EditableLa
           props.className
         )}
         ref={ref}
-        onDoubleClick={() => editInput()}
         tabIndex={tabIndex}
-        onKeyUp={e => {
-          if (e.key === "Enter" && !isEditing) editInput()
-        }}
+        onDoubleClick={wrapperHandlers.onDoubleClick}
+        onKeyUp={wrapperHandlers.onKeyUp}
       >
         {/* {true && ( */}
         {isEditing && (
@@ -71,15 +115,11 @@ export const EditableLabel = React.forwardRef<React.ElementRef<"td">, EditableLa
               "outline-none",
               props.className
             )}
-            onDoubleClick={e => e.stopPropagation()}
-            onChange={handleOnChange}
-            onBlur={handleOnBlur}
-            onKeyUp={e => {
-              if (e.key === "Enter") {
-                setIsEditing(false)
-                if (onAction) onAction()
-              }
-            }}
+            onDoubleClick={inputHandlers.handleOnDoubleClick}
+            onChange={inputHandlers.handleOnChange}
+            onBlur={inputHandlers.handleOnBlur}
+            onKeyUp={inputHandlers.handleOnKeyUp}
+            onFocus={inputHandlers.handleOnFocus}
             value={text}
           />
         )}
@@ -90,7 +130,8 @@ export const EditableLabel = React.forwardRef<React.ElementRef<"td">, EditableLa
         >
           {text.length === 0 ? "X" : text}
         </span>
-      </td>
+        <span className="text-xs text-color-soft">{taskId}</span>
+      </div>
     )
   }
 )

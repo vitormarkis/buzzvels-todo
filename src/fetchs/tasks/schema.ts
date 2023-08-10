@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-export const taskSchema = z
+export const taskSchemaAPI = z
   .object({
     id: z.string(),
     endDate: z.number().nullable(),
@@ -10,4 +10,18 @@ export const taskSchema = z
   })
   .strict()
 
-export type TaskSession = z.output<typeof taskSchema>
+export const subtaskSchema = z
+  .object({
+    id: z.string(),
+    createdAt: z.number(),
+    task: z.string().min(1),
+    isDone: z.boolean().default(false),
+    taskId: z.string(),
+  })
+  .strict()
+
+export type TaskAPI = z.output<typeof taskSchemaAPI>
+export type SubtaskSession = z.output<typeof subtaskSchema>
+export type TaskSession = TaskAPI & {
+  subtasks: SubtaskSession[]
+}

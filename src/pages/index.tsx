@@ -8,7 +8,7 @@ import { ModalCreateNewTask } from "@/components/modal"
 import { redis } from "@/lib/redis"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAuth } from "@clerk/nextjs"
-import { TaskSession, taskSchema } from "@/fetchs/tasks/schema"
+import { SubtaskSession, TaskSession, subtaskSchema, taskSchemaAPI } from "@/fetchs/tasks/schema"
 import { z } from "zod"
 import { Checkbox } from "@/components/ui/checkbox"
 import { PadWrapper } from "@/components/container/pad-container/PadWrapper"
@@ -19,6 +19,8 @@ import { useUserInfo } from "@/contexts/user-info/userInfoContext"
 import { useEffect, useLayoutEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { IconWrite } from "@/components/icons/IconWrite"
+
+type TaskID = string
 
 export default function Home() {
   const [floatingNewTaskVisible, setFloatingNewTaskVisible] = useState(false)
@@ -32,14 +34,66 @@ export default function Home() {
   const { data: rawTasks } = useQuery({
     queryKey: ["tasksIds", userId],
     queryFn: async () => {
-      const tasksIds = await redis.lrange(`tasks:${userId}`, 0, 9 ** 9)
-      const unparsedTasks = await Promise.all(tasksIds.map(taskId => redis.hgetall(taskId)))
+      const tasksIds = await redis.lrange(`tasks:${userId}`, 0, -1)
+      const subtasksIds = await redis.lrange(`subtasks:${userId}`, 0, -1)
+      const [unparsedTasks, unparsedSubtasks] = await Promise.all([
+        Promise.all(tasksIds.map(taskId => redis.hgetall(taskId))),
+        Promise.all(subtasksIds.map(subtaskId => redis.hgetall(subtaskId))),
+      ])
+
+      // const unparsedAllSubstasks = await Promise.all(
+      //   allSubtasksIds.map(async subtasksIds => {
+      //     return await Promise.all(subtasksIds.map(subtaskId => redis.hgetall(subtaskId)))
+      //   })
+      // )
+
       try {
-        const tasks = await z.array(taskSchema).parseAsync(unparsedTasks)
-        return tasks
+        const [tasks, subtasks] = await Promise.all([
+          z.array(taskSchemaAPI).parseAsync(unparsedTasks),
+          z.array(subtaskSchema).parseAsync(unparsedSubtasks),
+        ])
+
+        const subtasksEntries = subtasks.reduce(
+          (newTasksAcc, subtask) => {
+            const alreadyHasObjectWithTaskId = newTasksAcc.find(i => i.id === subtask.taskId)
+
+            if (alreadyHasObjectWithTaskId) {
+              newTasksAcc = newTasksAcc.map(taskWithSubtasks =>
+                taskWithSubtasks.id === subtask.taskId
+                  ? {
+                      ...taskWithSubtasks,
+                      subtasks: [...taskWithSubtasks.subtasks, subtask],
+                    }
+                  : taskWithSubtasks
+              )
+            } else {
+              newTasksAcc = [
+                ...newTasksAcc,
+                {
+                  id: subtask.taskId,
+                  subtasks: [subtask],
+                },
+              ]
+            }
+
+            return newTasksAcc
+          },
+          [] as Array<{
+            id: string
+            subtasks: SubtaskSession[]
+          }>
+        )
+
+        const tasksWithSubtasks = tasks.map(task => ({
+          ...task,
+          subtasks: subtasksEntries.find(s => s.id === task.id)?.subtasks ?? [],
+        }))
+
+        return tasksWithSubtasks
       } catch (error) {
         console.log({
           unparsedTasks,
+          unparsedSubtasks,
           error,
         })
       }
