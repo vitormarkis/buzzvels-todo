@@ -1,11 +1,10 @@
-import React, { useId, useState } from "react"
+import React, { useState } from "react"
 import { cn } from "@/lib/utils"
 import { PadContainer } from "@/components/container/pad-container/PadContainer"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { SubtaskSession, TaskSession } from "@/fetchs/tasks/schema"
 import { redis } from "@/lib/redis"
-import { Label } from "@/components/ui/label"
 import { useAuth } from "@clerk/nextjs"
 import { Button } from "@/components/ui/button"
 import { IconThreeDotsVertical } from "@/components/icons/IconThreeDotsVertical"
@@ -13,9 +12,6 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
 import { IconTrash } from "@/components/icons/IconTrash"
 import { AlertDialogHeader, AlertDialogFooter } from "@/components/ui/alert-dialog"
@@ -29,18 +25,39 @@ import {
   AlertDialogAction,
 } from "@/components/ui/alert-dialog"
 import { EditableLabel } from "@/components/editable-label/EditableLabel"
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion"
+import { Accordion, AccordionContent, AccordionItem } from "@/components/ui/accordion"
 import { IconListTree } from "@/components/icons/IconListTree"
-import { TodoProvider, TodoContainer, TodoCheckbox, TodoEditableLabel } from "@/components/app/todo"
+import {
+  TodoProvider,
+  TodoContainer,
+  TodoCheckbox,
+  TodoEditableLabel,
+  TodoActionsContainer,
+  TodoAction,
+} from "@/components/app/todo"
 import { CheckedState } from "@radix-ui/react-checkbox"
+import { useUserInfo } from "@/contexts/user-info/userInfoContext"
+import {
+  MutateCreateNewSubtask,
+  MutateCreateNewSubtaskInput,
+  mutateCreateNewSubtaskSchema,
+} from "@/schemas/subtask/create"
+import { IconPlus, IconX } from "@/components/icons"
+import {
+  MutateDeleteSubtaskInput,
+  SubtaskRequestBodySchemaInput,
+  mutateDeleteSubtaskSchema,
+} from "@/schemas/subtask/delete"
+import { nanoid } from "nanoid"
+import { createQueryCache } from "@/factories/createQueryCache"
+import {
+  MutateChangeSubtaskTextInput,
+  mutateChangeSubtaskTextSchema,
+} from "@/schemas/subtask/change"
+import { MutateChangeTaskTextInput, mutateChangeTaskTextSchema } from "@/schemas/task/change"
+
 type MutateToggleTask = { taskId: string; isDone: boolean }
 type MutateToggleSubtask = { subtask: SubtaskSession; isDone: CheckedState }
-
 type MutateDeleteTask = { taskId: string }
 
 export type ToDoProps = React.ComponentPropsWithoutRef<"div"> & {
@@ -52,50 +69,24 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
   ref
 ) {
   const [text, setText] = useState(task.task)
+  const [isNewSubtaskDone, setIsNewSubtaskDone] = useState<CheckedState>(false)
+  const [isAddingNewSubtask, setIsAddingNewSubtask] = useState(false)
+  const [whichAccordionOpen, setWhichAccordionOpen] = useState("")
+  if (task.id === "task_xxnGhyGJ2VNXKnKyMzwrw") console.log(whichAccordionOpen)
 
-  const toggleIsDoneId = useId()
+  const { headers } = useUserInfo()
   const { userId } = useAuth()
   const queryClient = useQueryClient()
+  const QueryCache = createQueryCache(queryClient, userId)
 
   const { mutate: toggleTodoMutate } = useMutation<{}, {}, MutateToggleTask>({
     mutationFn: ({ isDone, taskId }) => redis.hset(taskId, { isDone }),
-    onMutate: ({ isDone, taskId }) => {
-      const tasks: TaskSession[] | undefined = queryClient.getQueryData(["tasksIds", userId])
-      if (!tasks) return
-      const newTasks = tasks.map(toggledTask =>
-        toggledTask.id === taskId
-          ? {
-              ...toggledTask,
-              isDone,
-            }
-          : toggledTask
-      )
-      queryClient.setQueryData(["tasksIds", userId], newTasks)
-    },
+    onMutate: ({ taskId, isDone }) => QueryCache.tasks.toggle(taskId, isDone),
   })
 
   const { mutate: toggleSubtaskMutate } = useMutation<{}, {}, MutateToggleSubtask>({
     mutationFn: ({ isDone, subtask }) => redis.hset(subtask.id, { isDone }),
-    onMutate: ({ isDone, subtask }) => {
-      const tasks: TaskSession[] | undefined = queryClient.getQueryData(["tasksIds", userId])
-      if (!tasks) return
-      const newTasks = tasks.map((task): TaskSession => {
-        return task.id === subtask.taskId
-          ? {
-              ...task,
-              subtasks: task.subtasks.map(currentSubtask =>
-                currentSubtask.id === subtask.id
-                  ? {
-                      ...currentSubtask,
-                      isDone: typeof isDone === "string" ? false : isDone,
-                    }
-                  : currentSubtask
-              ),
-            }
-          : task
-      })
-      queryClient.setQueryData(["tasksIds", userId], newTasks)
-    },
+    onMutate: ({ isDone, subtask }) => QueryCache.subtasks.toggle(isDone, subtask),
   })
 
   const { mutate: deleteTodoMutate } = useMutation<{}, {}, MutateDeleteTask>({
@@ -108,6 +99,56 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
       if (!tasks) return
       const newTasks = tasks.filter(toggledTask => toggledTask.id !== taskId)
       queryClient.setQueryData(["tasksIds", userId], newTasks)
+    },
+  })
+
+  const { mutate: changeSubtaskTextMutate } = useMutation<{}, {}, MutateChangeSubtaskTextInput>({
+    mutationFn: async ({ subtaskId, text }) => redis.hset(subtaskId, { task: text }),
+    onMutate: ({ subtaskId, text }) => QueryCache.subtasks.changeText(subtaskId, text),
+  })
+
+  const { mutate: changeTaskTextMutate } = useMutation<{}, {}, MutateChangeTaskTextInput>({
+    mutationFn: async ({ taskId, text }) => redis.hset(taskId, { task: text }),
+    onMutate: ({ taskId, text }) => QueryCache.tasks.changeText(taskId, text),
+  })
+
+  const { mutate: createNewSubtaskMutate } = useMutation<{}, {}, MutateCreateNewSubtaskInput>({
+    mutationFn: async ({ isDone, task, taskId }) =>
+      fetch("/api/subtask", {
+        body: JSON.stringify({ isDone, task, taskId }),
+        headers,
+        method: "POST",
+      }),
+    onMutate: ({ taskId, task }) => {
+      QueryCache.subtasks.add({
+        id: nanoid(),
+        isDone: !!isNewSubtaskDone,
+        createdAt: new Date().getTime(),
+        task,
+        taskId,
+      })
+      resetNewSubtaskState()
+    },
+    onError: error => console.log("onError", error),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["tasksIds", userId])
+    },
+  })
+
+  const { mutate: deleteSubtaskMutate } = useMutation<{}, {}, MutateDeleteSubtaskInput>({
+    mutationFn: ({ id }: SubtaskRequestBodySchemaInput) =>
+      fetch("/api/subtask", {
+        body: JSON.stringify({ id }),
+        headers,
+        method: "DELETE",
+      }),
+    onMutate: ({ id: subtaskId, taskId }) => {
+      QueryCache.subtasks.remove(subtaskId, taskId, {
+        onRemoveLastOne: () => {
+          setWhichAccordionOpen("")
+          resetNewSubtaskState()
+        },
+      })
     },
   })
 
@@ -129,35 +170,56 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
     deleteTodoMutate({ taskId })
   }
 
-  const handleChangeTaskName = () => {
-    const tasks: TaskSession[] | undefined = queryClient.getQueryData(["tasksIds", userId])
-    if (!tasks) return
-    const editingTask = tasks.find(currentTask => task.id === currentTask.id)
-    if (!editingTask) return
-    if (editingTask.task === text) return
+  const handleChangeTaskName = (props: MutateChangeTaskTextInput) => {
+    const { taskId, text } = mutateChangeTaskTextSchema.parse(props)
+    changeTaskTextMutate({ taskId, text })
+  }
 
-    const newTasks = tasks.map(currentTask =>
-      currentTask.id === task.id ? { ...currentTask, task: text } : currentTask
-    )
+  const handleChangeSubtaskText = (props: MutateChangeSubtaskTextInput) => {
+    const { subtaskId, text } = mutateChangeSubtaskTextSchema.parse(props)
+    changeSubtaskTextMutate({ subtaskId, text })
+  }
 
-    queryClient.setQueryData(["tasksIds", userId], newTasks)
+  const handleCreateNewSubtask = (props: MutateCreateNewSubtaskInput) => {
+    const { isDone, task, taskId } = mutateCreateNewSubtaskSchema.parse(props)
+    createNewSubtaskMutate({ isDone, task, taskId })
+  }
 
-    void redis.hset(task.id, { task: text })
+  const handleDeleteSubtask = (props: MutateDeleteSubtaskInput) => {
+    const { id, taskId } = mutateDeleteSubtaskSchema.parse(props)
+    deleteSubtaskMutate({ id, taskId })
+  }
+
+  const setAccordion = (openingAccordion: string) => (currentOpenAccordion: string) =>
+    currentOpenAccordion === openingAccordion ? "" : openingAccordion
+
+  const handleToggleAccordion = {
+    subtasks: () => setWhichAccordionOpen(setAccordion("subtasks")),
+  }
+
+  function resetNewSubtaskState() {
+    setIsAddingNewSubtask(false)
+    setIsNewSubtaskDone(false)
   }
 
   return (
     <PadContainer
       {...props}
-      className={cn("justify-between relative pr-3.5", props.className)}
+      className={cn(
+        "min-h-[3rem] py-0 px-4 justify-between relative overflow-hidden",
+        props.className
+      )}
       ref={ref}
     >
       <Accordion
         type="single"
         collapsible
         className="flex-1"
+        value={whichAccordionOpen}
+        onValueChange={setWhichAccordionOpen}
       >
         <AccordionItem
-          value="item-1"
+          value="subtasks"
           className="flex flex-col"
         >
           <div className="flex">
@@ -165,22 +227,25 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
               <Checkbox
                 checked={task.isDone}
                 onCheckedChange={isDone => handleToggleTodo({ isDone: !!isDone, taskId: task.id })}
-                size="big"
               />
               <EditableLabel
                 state={[text, setText]}
                 data-completed={task.isDone}
                 taskId={task.id}
-                className="flex-1 py-4 data-[completed=true]:text-color data-[completed=true]:line-through text-lg"
-                onAction={handleChangeTaskName}
+                className="flex-1"
+                onAction={newValue => handleChangeTaskName({ taskId: task.id, text: newValue })}
               />
             </div>
             <div className="flex items-center gap-1.5">
-              <AccordionTrigger asChild>
-                <Button className="h-8 w-8 p-0">
-                  <IconListTree />
-                </Button>
-              </AccordionTrigger>
+              {/* <AccordionTrigger asChild> */}
+              <Button
+                data-nosubtasks={task.subtasks.length === 0}
+                className="h-8 w-8 p-0 data-[nosubtasks=true]:opacity-50 data-[nosubtasks=true]:hover:opacity-100 transition"
+                onClick={handleToggleAccordion["subtasks"]}
+              >
+                <IconListTree />
+              </Button>
+              {/* </AccordionTrigger> */}
               <DropdownMenu>
                 <DropdownMenuTrigger>
                   <Button className="h-8 w-8 p-0">
@@ -240,26 +305,159 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
             <div className="px-3">
               <div className="h-full border-r" />
             </div>
-            <div className="flex-1 flex flex-col gap-1">
-              {task.subtasks.length > 0 ? (
-                task.subtasks.map(subtask => (
+            <div className="flex-1 flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                {task.subtasks.length > 0 ? (
+                  task.subtasks.map(subtask => (
+                    <TodoProvider
+                      onCheckedChange={isDone => handleToggleSubtask({ isDone, subtask })}
+                      checked={subtask.isDone}
+                      initialLabelValue={subtask.task}
+                      onLabelChange={newValue =>
+                        handleChangeSubtaskText({ subtaskId: subtask.id, text: newValue })
+                      }
+                    >
+                      <TodoContainer>
+                        <TodoCheckbox />
+                        <TodoEditableLabel
+                          disableActionOnNoChange
+                          taskId={subtask.id}
+                          padding="v-small"
+                        />
+                        <TodoActionsContainer>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <TodoAction>
+                                <IconX size={14} />
+                              </TodoAction>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will permanently this subtask.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel asChild>
+                                  <Button
+                                    variant="default"
+                                    className="__neutral"
+                                  >
+                                    <span>Cancel</span>
+                                  </Button>
+                                </AlertDialogCancel>
+                                <AlertDialogAction asChild>
+                                  <Button
+                                    onClick={() =>
+                                      handleDeleteSubtask({
+                                        id: subtask.id,
+                                        taskId: task.id,
+                                      })
+                                    }
+                                    className="__block"
+                                  >
+                                    <IconTrash
+                                      size={16}
+                                      style={{ color: "inherit" }}
+                                    />
+                                    <span>Confirm</span>
+                                  </Button>
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </TodoActionsContainer>
+                      </TodoContainer>
+                    </TodoProvider>
+                  ))
+                ) : (
+                  // NOSUBTASKS
                   <TodoProvider
-                    onLabelChange={newValue =>
-                      console.log(`Label received a new value: ${newValue}.`)
+                    onCheckedChange={setIsNewSubtaskDone}
+                    checked={isNewSubtaskDone}
+                    initialLabelValue=""
+                    onLabelChange={newText =>
+                      handleCreateNewSubtask({
+                        taskId: task.id,
+                        isDone: !!isNewSubtaskDone,
+                        task: newText,
+                      })
                     }
-                    onCheckedChange={isDone => handleToggleSubtask({ isDone, subtask })}
-                    checked={subtask.isDone}
-                    initialLabelValue={subtask.task}
                   >
                     <TodoContainer>
                       <TodoCheckbox />
-                      <TodoEditableLabel disableActionOnNoChange />
+                      <TodoEditableLabel
+                        selectAutoFocus
+                        disableAction
+                        padding="v-small"
+                        textStyle="new"
+                      />
+                      <TodoActionsContainer>
+                        <TodoAction className="__neutral bg-background">
+                          <IconPlus size={14} />
+                        </TodoAction>
+                        <TodoAction
+                          onClick={() => {
+                            setWhichAccordionOpen("")
+                            resetNewSubtaskState()
+                          }}
+                        >
+                          <IconX size={14} />
+                        </TodoAction>
+                      </TodoActionsContainer>
                     </TodoContainer>
                   </TodoProvider>
-                ))
-              ) : (
-                <span className="text-xs text-color-soft">No subtasks</span>
-              )}
+                )}
+                {task.subtasks.length > 0 && isAddingNewSubtask && (
+                  // ADDNEWSUBTASK
+                  <TodoProvider
+                    onCheckedChange={setIsNewSubtaskDone}
+                    checked={isNewSubtaskDone}
+                    initialLabelValue=""
+                    onLabelChange={newText =>
+                      handleCreateNewSubtask({
+                        taskId: task.id,
+                        isDone: !!isNewSubtaskDone,
+                        task: newText,
+                      })
+                    }
+                  >
+                    <TodoContainer>
+                      <TodoCheckbox />
+                      <TodoEditableLabel
+                        selectAutoFocus
+                        disableAction
+                        padding="v-small"
+                        textStyle="new"
+                      />
+                      <TodoActionsContainer>
+                        <TodoAction className="__neutral bg-background">
+                          <IconPlus size={14} />
+                        </TodoAction>
+                        <TodoAction
+                          onClick={() => {
+                            const hasNoSubtask = task.subtasks.length === 0
+                            if (hasNoSubtask) setWhichAccordionOpen("")
+                            resetNewSubtaskState()
+                          }}
+                        >
+                          <IconX size={14} />
+                        </TodoAction>
+                      </TodoActionsContainer>
+                    </TodoContainer>
+                  </TodoProvider>
+                )}
+              </div>
+              <Button
+                data-disabled={isAddingNewSubtask}
+                onClick={() => setIsAddingNewSubtask(true)}
+                className="__neutral disabled:opacity-50 disabled:cursor-not-allowed ml-2 h-5 text-xs w-fit pr-4 pl-2"
+                disabled={isAddingNewSubtask}
+              >
+                <IconPlus size={10} />
+                New task
+              </Button>
             </div>
           </AccordionContent>
         </AccordionItem>

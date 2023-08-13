@@ -19,8 +19,7 @@ import { useUserInfo } from "@/contexts/user-info/userInfoContext"
 import { useEffect, useLayoutEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { IconWrite } from "@/components/icons/IconWrite"
-
-type TaskID = string
+import { ITodoContext } from "@/components/app/todo"
 
 export default function Home() {
   const [floatingNewTaskVisible, setFloatingNewTaskVisible] = useState(false)
@@ -34,20 +33,17 @@ export default function Home() {
   const { data: rawTasks } = useQuery({
     queryKey: ["tasksIds", userId],
     queryFn: async () => {
-      const tasksIds = await redis.lrange(`tasks:${userId}`, 0, -1)
-      const subtasksIds = await redis.lrange(`subtasks:${userId}`, 0, -1)
-      const [unparsedTasks, unparsedSubtasks] = await Promise.all([
-        Promise.all(tasksIds.map(taskId => redis.hgetall(taskId))),
-        Promise.all(subtasksIds.map(subtaskId => redis.hgetall(subtaskId))),
-      ])
-
-      // const unparsedAllSubstasks = await Promise.all(
-      //   allSubtasksIds.map(async subtasksIds => {
-      //     return await Promise.all(subtasksIds.map(subtaskId => redis.hgetall(subtaskId)))
-      //   })
-      // )
-
       try {
+        const [tasksIds, subtasksIds] = await Promise.all([
+          redis.lrange(`tasks:${userId}`, 0, -1),
+          redis.lrange(`subtasks:${userId}`, 0, -1),
+        ])
+
+        const [unparsedTasks, unparsedSubtasks] = await Promise.all([
+          Promise.all(tasksIds.map(taskId => redis.hgetall(taskId))),
+          Promise.all(subtasksIds.map(subtaskId => redis.hgetall(subtaskId))),
+        ])
+
         const [tasks, subtasks] = await Promise.all([
           z.array(taskSchemaAPI).parseAsync(unparsedTasks),
           z.array(subtaskSchema).parseAsync(unparsedSubtasks),
@@ -84,21 +80,21 @@ export default function Home() {
           }>
         )
 
-        const tasksWithSubtasks = tasks.map(task => ({
-          ...task,
-          subtasks: subtasksEntries.find(s => s.id === task.id)?.subtasks ?? [],
-        }))
+        const tasksWithSubtasks = tasks.map(task => {
+          const { subtasks = [] } = subtasksEntries.find(stEntry => stEntry.id === task.id) ?? {}
+          return {
+            ...task,
+            subtasks,
+          }
+        })
 
         return tasksWithSubtasks
       } catch (error) {
-        console.log({
-          unparsedTasks,
-          unparsedSubtasks,
-          error,
-        })
+        console.log(error)
       }
     },
-    staleTime: 60 * 1000,
+    staleTime: 1000 * 60, // 1 minute
+    refetchOnWindowFocus: false,
   })
 
   const { mutate: createNewTodoMutate } = useMutation<{}, {}, CreateNewTaskForm>({
@@ -167,7 +163,7 @@ export default function Home() {
         <aside className="hidden md:flex max-h-screen w-[200px] border-r sticky top-[65px] h-[calc(100dvh_-_65px)]">
           <Sidebar />
         </aside>
-        <main className="flex-1 pt-12 pb-24 space-y-6 px-0 sm:px-6">
+        <main className="flex-1 pt-12 pb-24 space-y-6 px-0 sm:px-6 overflow-x-hidden">
           <ModalCreateNewTask mutate={createNewTodoMutate}>
             <Button
               size="xl"

@@ -116,7 +116,7 @@
 
   .__neutral {
     --background: var(--black);
-    --background-shadow: var(--black-100);
+    --background-shadow: var(--black-300);
     --color: var(--white);
     --ring: var(--black-100);
     --symbol: var(--white);
@@ -133,12 +133,12 @@
   .dark .__first {
     --background: var(--black);
     --background-shadow: var(--black-200);
-    --color: var(--white-600);
+    --color: var(--white-300);
     --color-soft: var(--white-900);
     --color-strong: var(--white);
     --heading: var(--white);
-    --heading-sub: var(--white-600);
-    --heading-soft: var(--white);
+    --heading-sub: var(--white-900);
+    --heading-soft: var(--white-900);
     --ring: var(--black-300);
     --symbol: var(--white-600);
     --accent: var(--electric-violet-500);
@@ -164,7 +164,7 @@
 
   .dark .__neutral {
     --background: var(--white);
-    --background-shadow: var(--white-100);
+    --background-shadow: var(--white-300);
     --color: var(--black);
     --ring: var(--white-100);
     --symbol: var(--black);

@@ -1,7 +1,7 @@
 type ActionKey = string
 
 export function handleKeyPressed(
-  event: React.KeyboardEvent<HTMLInputElement>,
+  event: React.KeyboardEvent<HTMLTextAreaElement | HTMLDivElement>,
   actions: Record<ActionKey, () => any>
 ) {
   const pressedKey = event.key as ActionKey
