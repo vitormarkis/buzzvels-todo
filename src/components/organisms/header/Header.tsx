@@ -20,14 +20,17 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRouter } from "next/router"
+import { User } from "@clerk/nextjs/server"
 
-export type HeaderProps = React.ComponentPropsWithoutRef<"header"> & {}
+export type HeaderProps = React.ComponentPropsWithoutRef<"header"> & {
+  user?: User | null | undefined
+}
 
 export const Header = React.forwardRef<React.ElementRef<"header">, HeaderProps>(
-  function HeaderComponent({ ...props }, ref) {
+  function HeaderComponent({ user, ...props }, ref) {
     const { signOut } = useClerk()
-    const { user, isSignedIn } = useUser()
     const router = useRouter()
+    const isSignedIn = !!user
 
     return (
       <header

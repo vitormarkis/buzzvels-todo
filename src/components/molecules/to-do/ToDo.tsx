@@ -310,6 +310,7 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                 {task.subtasks.length > 0 ? (
                   task.subtasks.map(subtask => (
                     <TodoProvider
+                      key={subtask.id}
                       onCheckedChange={isDone => handleToggleSubtask({ isDone, subtask })}
                       checked={subtask.isDone}
                       initialLabelValue={subtask.task}

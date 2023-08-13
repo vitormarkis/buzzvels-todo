@@ -30,19 +30,29 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { useUserInfo } from "@/contexts/user-info/userInfoContext"
 import { useAuth } from "@clerk/nextjs"
 import { UseMutateFunction, useMutation, useQueryClient } from "@tanstack/react-query"
-import { z } from "zod"
+import { useRouter } from "next/router"
 
 export type ModalCreateNewTaskProps = React.ComponentPropsWithoutRef<"div"> & {
-  children: React.ReactNode
+  children?: React.ReactNode
   mutate: UseMutateFunction<{}, {}, CreateNewTaskForm>
 }
 
 export const ModalCreateNewTask = React.forwardRef<
   React.ElementRef<"div">,
   ModalCreateNewTaskProps
->(function ModalCreateNewTaskComponent({ mutate, children, ...props }, ref) {
+>(function ModalCreateNewTaskComponent({ children, mutate, ...props }, ref) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [hasDeadlineDate, setHasDeadlineDate] = useState<boolean | "indeterminate">(false)
+  const { userId } = useAuth()
+  const router = useRouter()
+
+  const onOpenChange = (open: boolean) => {
+    if (!userId) {
+      router.push("/sign-in")
+      return false
+    }
+    return open
+  }
 
   const methods = useForm<CreateNewTaskForm>({
     defaultValues: {
@@ -60,7 +70,7 @@ export const ModalCreateNewTask = React.forwardRef<
   return (
     <Dialog
       open={isModalOpen}
-      onOpenChange={setIsModalOpen}
+      onOpenChange={open => setIsModalOpen(onOpenChange(open))}
     >
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent

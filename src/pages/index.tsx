@@ -8,27 +8,43 @@ import { ModalCreateNewTask } from "@/components/modal"
 import { redis } from "@/lib/redis"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAuth } from "@clerk/nextjs"
-import { SubtaskSession, TaskSession, subtaskSchema, taskSchemaAPI } from "@/fetchs/tasks/schema"
+import { SubtaskSession, subtaskSchema, taskSchemaAPI } from "@/fetchs/tasks/schema"
 import { z } from "zod"
-import { Checkbox } from "@/components/ui/checkbox"
 import { PadWrapper } from "@/components/container/pad-container/PadWrapper"
-import { PadContainer } from "@/components/container/pad-container/PadContainer"
 import { ToDo, ToDoSkeleton } from "@/components/molecules/to-do/ToDo"
-import { CreateNewTaskForm, createNewTaskFormSchema } from "@/form/create-new-task/schema"
+import { CreateNewTaskForm } from "@/form/create-new-task/schema"
 import { useUserInfo } from "@/contexts/user-info/userInfoContext"
-import { useEffect, useLayoutEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { IconWrite } from "@/components/icons/IconWrite"
-import { ITodoContext } from "@/components/app/todo"
+import { clerkClient, getAuth, buildClerkProps, User } from "@clerk/nextjs/server"
+import { GetServerSideProps } from "next"
+import { ClerkBuilder } from "@/types/clerkBuilder"
 
-export default function Home() {
+type ServerSideProps = {
+  user?: User | null | undefined
+}
+
+export const getServerSideProps: GetServerSideProps<ServerSideProps> = async ctx => {
+  const { userId } = getAuth(ctx.req)
+
+  const rawUser = userId ? await clerkClient.users.getUser(userId) : undefined
+  const clerk = buildClerkProps(ctx.req, { user: rawUser }) as unknown as ClerkBuilder
+  const user = clerk?.__clerk_ssr_state?.user ?? null
+
+  return { props: { user } }
+}
+
+export default function Home({ user }: ServerSideProps) {
   const [floatingNewTaskVisible, setFloatingNewTaskVisible] = useState(false)
   const [isLoadingNewTask, setIsLoadingNewTask] = useState(false)
+
   const { userId } = useAuth()
   const { headers } = useUserInfo()
   const queryClient = useQueryClient()
   const tasksCache = queryClient.getQueryData(["tasksIds", userId])
   const [isMounted, setIsMounted] = useState(false)
+  const hasSession = !!user
 
   const { data: rawTasks } = useQuery({
     queryKey: ["tasksIds", userId],
@@ -143,7 +159,7 @@ export default function Home() {
 
   return (
     <>
-      <Header />
+      <Header user={user} />
       <div className="absolute left-1/2 -translate-x-1/2 -translate-y-[1px] h-[1px] bg-gradient-to-r from-transparent to-transparent via-color/40 max-w-xl w-full" />
       <div className={cn(st.sponge, "dark:visible invisible")} />
       <CenteredContainer className="flex min-h-[calc(100dvh_-_65px)]">
@@ -178,7 +194,7 @@ export default function Home() {
             {/* {true && <ToDoSkeleton />} */}
             {tasks?.map(task => (
               <ToDo
-                key={task.task}
+                key={task.id}
                 className="__first"
                 task={task}
               />
