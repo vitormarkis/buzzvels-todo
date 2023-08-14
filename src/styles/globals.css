@@ -125,7 +125,6 @@
   .__block {
     --background: var(--crimson-500);
     --background-shadow: var(--crimson-600);
-    --color: var(--white);
     --ring: var(--crimson-600);
     --symbol: var(--white);
   }

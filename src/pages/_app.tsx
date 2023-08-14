@@ -5,6 +5,7 @@ import type { AppProps } from "next/app"
 import { useRouter } from "next/router"
 import { cn } from "@/lib/utils"
 import { Inter, Poppins } from "next/font/google"
+import { Toaster } from "@/components/ui/toaster"
 import "@/styles/globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -22,37 +23,9 @@ export default function App({ Component, pageProps }: AppProps) {
           <main className={cn(inter.className, poppins.variable)}>
             <Component {...pageProps} />
           </main>
+          <Toaster />
         </ClientOnly>
       </AppProviders>
-    </ClerkProvider>
-  )
-}
-
-function App__legacy({ Component, pageProps }: AppProps) {
-  const { pathname } = useRouter()
-  const publicPages = [""]
-  const isPublicPage = publicPages.includes(pathname)
-
-  const App = (
-    <AppProviders>
-      <ClientOnly>
-        <Component {...pageProps} />
-      </ClientOnly>
-    </AppProviders>
-  )
-
-  return (
-    <ClerkProvider {...pageProps}>
-      {isPublicPage ? (
-        { App }
-      ) : (
-        <>
-          <SignedIn>{App}</SignedIn>
-          <SignedOut>
-            <RedirectToSignIn />
-          </SignedOut>
-        </>
-      )}
     </ClerkProvider>
   )
 }

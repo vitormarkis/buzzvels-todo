@@ -20,6 +20,7 @@ import { IconWrite } from "@/components/icons/IconWrite"
 import { clerkClient, getAuth, buildClerkProps, User } from "@clerk/nextjs/server"
 import { GetServerSideProps } from "next"
 import { ClerkBuilder } from "@/types/clerkBuilder"
+import { useToast } from "@/components/ui/use-toast"
 
 type ServerSideProps = {
   user?: User | null | undefined
@@ -45,72 +46,81 @@ export default function Home({ user }: ServerSideProps) {
   const tasksCache = queryClient.getQueryData(["tasksIds", userId])
   const [isMounted, setIsMounted] = useState(false)
   const hasSession = !!user
+  const { toast } = useToast()
 
   const { data: rawTasks } = useQuery({
     queryKey: ["tasksIds", userId],
     queryFn: async () => {
-      try {
-        const [tasksIds, subtasksIds] = await Promise.all([
-          redis.lrange(`tasks:${userId}`, 0, -1),
-          redis.lrange(`subtasks:${userId}`, 0, -1),
-        ])
+      const [tasksIds, subtasksIds] = await Promise.all([
+        redis.lrange(`tasks:${userId}`, 0, -1),
+        redis.lrange(`subtasks:${userId}`, 0, -1),
+      ])
 
-        const [unparsedTasks, unparsedSubtasks] = await Promise.all([
-          Promise.all(tasksIds.map(taskId => redis.hgetall(taskId))),
-          Promise.all(subtasksIds.map(subtaskId => redis.hgetall(subtaskId))),
-        ])
+      const [unparsedTasks, unparsedSubtasks] = await Promise.all([
+        Promise.all(tasksIds.map(taskId => redis.hgetall(taskId))),
+        Promise.all(subtasksIds.map(subtaskId => redis.hgetall(subtaskId))),
+      ])
 
-        const [tasks, subtasks] = await Promise.all([
-          z.array(taskSchemaAPI).parseAsync(unparsedTasks),
-          z.array(subtaskSchema).parseAsync(unparsedSubtasks),
-        ])
+      const [tasks, subtasks] = await Promise.all([
+        z.array(taskSchemaAPI).parseAsync(unparsedTasks),
+        z.array(subtaskSchema).parseAsync(unparsedSubtasks),
+      ])
 
-        const subtasksEntries = subtasks.reduce(
-          (newTasksAcc, subtask) => {
-            const alreadyHasObjectWithTaskId = newTasksAcc.find(i => i.id === subtask.taskId)
+      const subtasksEntries = subtasks.reduce(
+        (newTasksAcc, subtask) => {
+          const alreadyHasObjectWithTaskId = newTasksAcc.find(i => i.id === subtask.taskId)
 
-            if (alreadyHasObjectWithTaskId) {
-              newTasksAcc = newTasksAcc.map(taskWithSubtasks =>
-                taskWithSubtasks.id === subtask.taskId
-                  ? {
-                      ...taskWithSubtasks,
-                      subtasks: [...taskWithSubtasks.subtasks, subtask],
-                    }
-                  : taskWithSubtasks
-              )
-            } else {
-              newTasksAcc = [
-                ...newTasksAcc,
-                {
-                  id: subtask.taskId,
-                  subtasks: [subtask],
-                },
-              ]
-            }
-
-            return newTasksAcc
-          },
-          [] as Array<{
-            id: string
-            subtasks: SubtaskSession[]
-          }>
-        )
-
-        const tasksWithSubtasks = tasks.map(task => {
-          const { subtasks = [] } = subtasksEntries.find(stEntry => stEntry.id === task.id) ?? {}
-          return {
-            ...task,
-            subtasks,
+          if (alreadyHasObjectWithTaskId) {
+            newTasksAcc = newTasksAcc.map(taskWithSubtasks =>
+              taskWithSubtasks.id === subtask.taskId
+                ? {
+                    ...taskWithSubtasks,
+                    subtasks: [...taskWithSubtasks.subtasks, subtask],
+                  }
+                : taskWithSubtasks
+            )
+          } else {
+            newTasksAcc = [
+              ...newTasksAcc,
+              {
+                id: subtask.taskId,
+                subtasks: [subtask],
+              },
+            ]
           }
-        })
 
-        return tasksWithSubtasks
-      } catch (error) {
-        console.log(error)
-      }
+          return newTasksAcc
+        },
+        [] as Array<{
+          id: string
+          subtasks: SubtaskSession[]
+        }>
+      )
+
+      const tasksWithSubtasks = tasks.map(task => {
+        const { subtasks = [] } = subtasksEntries.find(stEntry => stEntry.id === task.id) ?? {}
+        return {
+          ...task,
+          subtasks,
+        }
+      })
+
+      return tasksWithSubtasks
     },
     staleTime: 1000 * 60, // 1 minute
     refetchOnWindowFocus: false,
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Failed to retrieve tasks",
+        description: (
+          <>
+            Something went wrong on our server during the fetch of your tasks,{" "}
+            <strong>please try again.</strong>
+          </>
+        ),
+      })
+    },
   })
 
   const { mutate: createNewTodoMutate } = useMutation<{}, {}, CreateNewTaskForm>({
@@ -127,7 +137,18 @@ export default function Home({ user }: ServerSideProps) {
         headers,
       })
     },
-    onError: error => console.log("onError", error),
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Failed to create task",
+        description: (
+          <>
+            Something went wrong on our server during the creation of your task,{" "}
+            <strong>please try again.</strong>
+          </>
+        ),
+      })
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(["tasksIds", userId])
     },

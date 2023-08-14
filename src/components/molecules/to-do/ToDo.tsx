@@ -55,6 +55,7 @@ import {
   mutateChangeSubtaskTextSchema,
 } from "@/schemas/subtask/change"
 import { MutateChangeTaskTextInput, mutateChangeTaskTextSchema } from "@/schemas/task/change"
+import { useToast } from "@/components/ui/use-toast"
 
 type MutateToggleTask = { taskId: string; isDone: boolean }
 type MutateToggleSubtask = { subtask: SubtaskSession; isDone: CheckedState }
@@ -72,6 +73,7 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
   const [isNewSubtaskDone, setIsNewSubtaskDone] = useState<CheckedState>(false)
   const [isAddingNewSubtask, setIsAddingNewSubtask] = useState(false)
   const [whichAccordionOpen, setWhichAccordionOpen] = useState("")
+  const { toast } = useToast()
   if (task.id === "task_xxnGhyGJ2VNXKnKyMzwrw") console.log(whichAccordionOpen)
 
   const { headers } = useUserInfo()
@@ -82,11 +84,35 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
   const { mutate: toggleTodoMutate } = useMutation<{}, {}, MutateToggleTask>({
     mutationFn: ({ isDone, taskId }) => redis.hset(taskId, { isDone }),
     onMutate: ({ taskId, isDone }) => QueryCache.tasks.toggle(taskId, isDone),
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Failed to toggle task",
+        description: (
+          <>
+            Something went wrong on our server during the toggle of your task,{" "}
+            <strong>please try again.</strong>
+          </>
+        ),
+      })
+    },
   })
 
   const { mutate: toggleSubtaskMutate } = useMutation<{}, {}, MutateToggleSubtask>({
     mutationFn: ({ isDone, subtask }) => redis.hset(subtask.id, { isDone }),
     onMutate: ({ isDone, subtask }) => QueryCache.subtasks.toggle(isDone, subtask),
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Failed to toggle sub-task",
+        description: (
+          <>
+            Something went wrong on our server during the toggle of your sub-task,{" "}
+            <strong>please try again.</strong>
+          </>
+        ),
+      })
+    },
   })
 
   const { mutate: deleteTodoMutate } = useMutation<{}, {}, MutateDeleteTask>({
@@ -100,16 +126,52 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
       const newTasks = tasks.filter(toggledTask => toggledTask.id !== taskId)
       queryClient.setQueryData(["tasksIds", userId], newTasks)
     },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Failed to delete task",
+        description: (
+          <>
+            Something went wrong on our server during the deletion of your task,{" "}
+            <strong>please try again.</strong>
+          </>
+        ),
+      })
+    },
   })
 
   const { mutate: changeSubtaskTextMutate } = useMutation<{}, {}, MutateChangeSubtaskTextInput>({
     mutationFn: async ({ subtaskId, text }) => redis.hset(subtaskId, { task: text }),
     onMutate: ({ subtaskId, text }) => QueryCache.subtasks.changeText(subtaskId, text),
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Failed to change sub-task text",
+        description: (
+          <>
+            Something went wrong on our server during the change of your sub-task text,{" "}
+            <strong>please try again.</strong>
+          </>
+        ),
+      })
+    },
   })
 
   const { mutate: changeTaskTextMutate } = useMutation<{}, {}, MutateChangeTaskTextInput>({
     mutationFn: async ({ taskId, text }) => redis.hset(taskId, { task: text }),
     onMutate: ({ taskId, text }) => QueryCache.tasks.changeText(taskId, text),
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Failed to change task text",
+        description: (
+          <>
+            Something went wrong on our server during the change of your task text,{" "}
+            <strong>please try again.</strong>
+          </>
+        ),
+      })
+    },
   })
 
   const { mutate: createNewSubtaskMutate } = useMutation<{}, {}, MutateCreateNewSubtaskInput>({
@@ -129,7 +191,18 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
       })
       resetNewSubtaskState()
     },
-    onError: error => console.log("onError", error),
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Failed to create sub-task",
+        description: (
+          <>
+            Something went wrong on our server during the creation of your sub-task,{" "}
+            <strong>please try again.</strong>
+          </>
+        ),
+      })
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(["tasksIds", userId])
     },
@@ -148,6 +221,18 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
           setWhichAccordionOpen("")
           resetNewSubtaskState()
         },
+      })
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Failed to delete sub-task",
+        description: (
+          <>
+            Something went wrong on our server during the deletion of your sub-task,{" "}
+            <strong>please try again.</strong>
+          </>
+        ),
       })
     },
   })
