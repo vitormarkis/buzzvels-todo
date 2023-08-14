@@ -212,7 +212,7 @@ export default function Home({ user }: ServerSideProps) {
           </ModalCreateNewTask>
           <PadWrapper className="__two">
             {isLoadingNewTask && <ToDoSkeleton />}
-            {/* {true && <ToDoSkeleton />} */}
+            {true && <ToDoSkeleton />}
             {tasks?.map(task => (
               <ToDo
                 key={task.id}
