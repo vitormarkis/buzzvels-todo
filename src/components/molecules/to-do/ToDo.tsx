@@ -344,7 +344,7 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                     <AlertDialogTrigger asChild>
                       <Button
                         variant="ghost"
-                        className="h-9 px-2 py-1.5 cursor-default justify-start w-full font-normal"
+                        className="h-9 px-2 py-1.5 cursor-default justify-start w-full font-normal rounded-sm"
                       >
                         <IconTrash
                           size={16}
@@ -355,18 +355,19 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          {task.task}
-                          This action cannot be undone. This will permanently this to-do.
-                        </AlertDialogDescription>
+                        <AlertDialogTitle>Delete To-do</AlertDialogTitle>
+                        <div className="flex flex-col gap-2">
+                          <p className="__two bg-background py-2 px-4 rounded-lg text-color">
+                            {task.task}
+                          </p>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete permanently this to-do?
+                          </AlertDialogDescription>
+                        </div>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel asChild>
-                          <Button
-                            variant="default"
-                            className="__neutral"
-                          >
+                          <Button variant="default">
                             <span>Cancel</span>
                           </Button>
                         </AlertDialogCancel>
@@ -420,19 +421,22 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                                 <IconX size={14} />
                               </TodoAction>
                             </AlertDialogTrigger>
+
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This action cannot be undone. This will permanently this subtask.
-                                </AlertDialogDescription>
+                                <AlertDialogTitle>Delete Sub-task</AlertDialogTitle>
+                                <div className="flex flex-col gap-2">
+                                  <p className="__two bg-background py-2 px-4 rounded-lg text-color">
+                                    {subtask.task}
+                                  </p>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete permanently this sub-task?
+                                  </AlertDialogDescription>
+                                </div>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel asChild>
-                                  <Button
-                                    variant="default"
-                                    className="__neutral"
-                                  >
+                                  <Button variant="default">
                                     <span>Cancel</span>
                                   </Button>
                                 </AlertDialogCancel>

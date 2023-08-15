@@ -108,7 +108,7 @@ export const Header = React.forwardRef<React.ElementRef<"header">, HeaderProps>(
               ) : (
                 <Button
                   asChild
-                  className="__action rounded-full"
+                  className="__action rounded-full whitespace-nowrap"
                 >
                   <Link href="/sign-in">Sign in</Link>
                 </Button>
