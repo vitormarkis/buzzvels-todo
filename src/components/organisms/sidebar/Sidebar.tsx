@@ -1,8 +1,6 @@
-"use client"
 import React from "react"
 import { cn } from "@/lib/utils"
 import { useTodosGroup } from "@/contexts/todos-group/todosGroupContext"
-import { SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 
 export function Sidebar() {
   const { todoGroups, usingTodoGroup, setUsingTodoGroup } = useTodosGroup()

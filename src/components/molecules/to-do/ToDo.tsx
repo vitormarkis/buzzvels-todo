@@ -357,6 +357,7 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                       <AlertDialogHeader>
                         <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                         <AlertDialogDescription>
+                          {task.task}
                           This action cannot be undone. This will permanently this to-do.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
