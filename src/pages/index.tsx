@@ -8,7 +8,7 @@ import { ModalCreateNewTask } from "@/components/modal"
 import { redis } from "@/lib/redis"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useAuth } from "@clerk/nextjs"
-import { SubtaskSession, subtaskSchema, taskSchemaAPI } from "@/fetchs/tasks/schema"
+import { SubtaskSession, TaskSession, subtaskSchema, taskSchemaAPI } from "@/fetchs/tasks/schema"
 import { z } from "zod"
 import { PadWrapper } from "@/components/container/pad-container/PadWrapper"
 import { ToDo, ToDoSkeleton } from "@/components/molecules/to-do/ToDo"
@@ -21,6 +21,7 @@ import { clerkClient, getAuth, buildClerkProps, User } from "@clerk/nextjs/serve
 import { GetServerSideProps } from "next"
 import { ClerkBuilder } from "@/types/clerkBuilder"
 import { useToast } from "@/components/ui/use-toast"
+import { IconFolderOpen } from "@/components/icons/IconFolderOpen"
 
 type ServerSideProps = {
   user?: User | null | undefined
@@ -48,7 +49,7 @@ export default function Home({ user }: ServerSideProps) {
   const hasSession = !!user
   const { toast } = useToast()
 
-  const { data: rawTasks } = useQuery({
+  const { data: rawTasks, isLoading } = useQuery({
     queryKey: ["tasksIds", userId],
     queryFn: async () => {
       const [tasksIds, subtasksIds] = await Promise.all([
@@ -124,10 +125,10 @@ export default function Home({ user }: ServerSideProps) {
   })
 
   const { mutate: createNewTodoMutate } = useMutation<{}, {}, CreateNewTaskForm>({
-    mutationFn: ({ task, endDate, hasDeadlineDate }) => {
+    mutationFn: async ({ task, endDate, hasDeadlineDate }) => {
       setIsLoadingNewTask(true)
 
-      return fetch("/api/task", {
+      const response = await fetch("/api/task", {
         body: JSON.stringify({
           task,
           endDate,
@@ -136,8 +137,16 @@ export default function Home({ user }: ServerSideProps) {
         method: "POST",
         headers,
       })
+
+      if (!response.ok) {
+        throw new Error("Failed to create task")
+      }
+
+      return response
     },
     onError: () => {
+      setIsLoadingNewTask(false)
+
       toast({
         variant: "destructive",
         title: "Failed to create task",
@@ -152,6 +161,7 @@ export default function Home({ user }: ServerSideProps) {
     onSuccess: () => {
       queryClient.invalidateQueries(["tasksIds", userId])
     },
+    retry: 3,
   })
 
   const tasks = rawTasks?.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
@@ -212,14 +222,28 @@ export default function Home({ user }: ServerSideProps) {
           </ModalCreateNewTask>
           <PadWrapper className="__two">
             {isLoadingNewTask && <ToDoSkeleton />}
-            {true && <ToDoSkeleton />}
-            {tasks?.map(task => (
-              <ToDo
-                key={task.id}
-                className="__first"
-                task={task}
-              />
-            ))}
+            {/* {true && <ToDoSkeleton />} */}
+            {tasks?.length && tasks.length > 0 ? (
+              tasks.map((task: TaskSession) => (
+                <ToDo
+                  key={task.id}
+                  className="__first"
+                  task={task}
+                />
+              ))
+            ) : (
+              <>
+                {!isLoadingNewTask && (
+                  <div className="py-4 flex flex-col gap-2 items-center">
+                    <h3 className="text-center text-color-soft text-xl">There is no tasks yet.</h3>
+                    <IconFolderOpen
+                      size={80}
+                      className="text-color-soft"
+                    />
+                  </div>
+                )}
+              </>
+            )}
           </PadWrapper>
         </main>
       </CenteredContainer>

@@ -1,4 +1,3 @@
-import { createQueryCache } from "@/factories/createQueryCache"
 import { createQueryCacheGetters } from "@/factories/createQueryCacheGetters"
 import { TaskSession } from "@/fetchs/tasks/schema"
 import { QueryClient } from "@tanstack/react-query"
@@ -40,9 +39,15 @@ export function createTasksCache(queryClient: QueryClient, userId?: UserID) {
     set(newTasks)
   }
 
+  const remove = (taskId: string) => {
+    const newTasks = tasks.filter(toggledTask => toggledTask.id !== taskId)
+    set(newTasks)
+  }
+
   return {
     set,
     toggle,
     changeText,
+    remove,
   }
 }

@@ -4,7 +4,6 @@ import { PadContainer } from "@/components/container/pad-container/PadContainer"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { SubtaskSession, TaskSession } from "@/fetchs/tasks/schema"
-import { redis } from "@/lib/redis"
 import { useAuth } from "@clerk/nextjs"
 import { Button } from "@/components/ui/button"
 import { IconThreeDotsVertical } from "@/components/icons/IconThreeDotsVertical"
@@ -56,10 +55,15 @@ import {
 } from "@/schemas/subtask/change"
 import { MutateChangeTaskTextInput, mutateChangeTaskTextSchema } from "@/schemas/task/change"
 import { useToast } from "@/components/ui/use-toast"
+import { changeSubtaskTextMutationFunction } from "@/services/react-query/mutations/changeSubtaskTextMutationFunction"
+import { deleteTaskMutationFunction } from "@/services/react-query/mutations/deleteTaskMutationFunction"
+import { toggleSubtaskMutationFunction } from "@/services/react-query/mutations/toggleSubtaskMutationFunction"
+import { toggleTaskMutationFunction } from "@/services/react-query/mutations/toggleTodoMutationFunction"
+import { changeTaskTextMutationFunction } from "@/services/react-query/mutations/changeTaskTextMutationFunction"
 
-type MutateToggleTask = { taskId: string; isDone: boolean }
-type MutateToggleSubtask = { subtask: SubtaskSession; isDone: CheckedState }
-type MutateDeleteTask = { taskId: string }
+export type MutateToggleTask = { taskId: string; isDone: boolean }
+export type MutateToggleSubtask = { subtask: SubtaskSession; isDone: CheckedState }
+export type MutateDeleteTask = { taskId: string }
 
 export type ToDoProps = React.ComponentPropsWithoutRef<"div"> & {
   task: TaskSession
@@ -74,15 +78,14 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
   const [isAddingNewSubtask, setIsAddingNewSubtask] = useState(false)
   const [whichAccordionOpen, setWhichAccordionOpen] = useState("")
   const { toast } = useToast()
-  if (task.id === "task_xxnGhyGJ2VNXKnKyMzwrw") console.log(whichAccordionOpen)
 
   const { headers } = useUserInfo()
   const { userId } = useAuth()
   const queryClient = useQueryClient()
   const QueryCache = createQueryCache(queryClient, userId)
 
-  const { mutate: toggleTodoMutate } = useMutation<{}, {}, MutateToggleTask>({
-    mutationFn: ({ isDone, taskId }) => redis.hset(taskId, { isDone }),
+  const { mutate: toggleTaskMutate } = useMutation<{}, {}, MutateToggleTask>({
+    mutationFn: payload => toggleTaskMutationFunction(payload, headers),
     onMutate: ({ taskId, isDone }) => QueryCache.tasks.toggle(taskId, isDone),
     onError: () => {
       toast({
@@ -96,10 +99,11 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
         ),
       })
     },
+    retry: 2,
   })
 
   const { mutate: toggleSubtaskMutate } = useMutation<{}, {}, MutateToggleSubtask>({
-    mutationFn: ({ isDone, subtask }) => redis.hset(subtask.id, { isDone }),
+    mutationFn: payload => toggleSubtaskMutationFunction(payload, headers),
     onMutate: ({ isDone, subtask }) => QueryCache.subtasks.toggle(isDone, subtask),
     onError: () => {
       toast({
@@ -113,19 +117,12 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
         ),
       })
     },
+    retry: 2,
   })
 
-  const { mutate: deleteTodoMutate } = useMutation<{}, {}, MutateDeleteTask>({
-    mutationFn: async ({ taskId }) => {
-      const [res] = await Promise.all([redis.del(taskId), redis.lrem(`tasks:${userId}`, 1, taskId)])
-      return res
-    },
-    onMutate: ({ taskId }) => {
-      const tasks: TaskSession[] | undefined = queryClient.getQueryData(["tasksIds", userId])
-      if (!tasks) return
-      const newTasks = tasks.filter(toggledTask => toggledTask.id !== taskId)
-      queryClient.setQueryData(["tasksIds", userId], newTasks)
-    },
+  const { mutate: deleteTaskMutate } = useMutation<{}, {}, MutateDeleteTask>({
+    mutationFn: payload => deleteTaskMutationFunction(payload, headers),
+    onMutate: ({ taskId }) => QueryCache.tasks.remove(taskId),
     onError: () => {
       toast({
         variant: "destructive",
@@ -138,10 +135,11 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
         ),
       })
     },
+    retry: 3,
   })
 
   const { mutate: changeSubtaskTextMutate } = useMutation<{}, {}, MutateChangeSubtaskTextInput>({
-    mutationFn: async ({ subtaskId, text }) => redis.hset(subtaskId, { task: text }),
+    mutationFn: payload => changeSubtaskTextMutationFunction(payload, headers),
     onMutate: ({ subtaskId, text }) => QueryCache.subtasks.changeText(subtaskId, text),
     onError: () => {
       toast({
@@ -155,10 +153,11 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
         ),
       })
     },
+    retry: 3,
   })
 
   const { mutate: changeTaskTextMutate } = useMutation<{}, {}, MutateChangeTaskTextInput>({
-    mutationFn: async ({ taskId, text }) => redis.hset(taskId, { task: text }),
+    mutationFn: payload => changeTaskTextMutationFunction(payload, headers),
     onMutate: ({ taskId, text }) => QueryCache.tasks.changeText(taskId, text),
     onError: () => {
       toast({
@@ -172,6 +171,7 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
         ),
       })
     },
+    retry: 3,
   })
 
   const { mutate: createNewSubtaskMutate } = useMutation<{}, {}, MutateCreateNewSubtaskInput>({
@@ -206,6 +206,7 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
     onSuccess: () => {
       queryClient.invalidateQueries(["tasksIds", userId])
     },
+    retry: 3,
   })
 
   const { mutate: deleteSubtaskMutate } = useMutation<{}, {}, MutateDeleteSubtaskInput>({
@@ -235,10 +236,11 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
         ),
       })
     },
+    retry: 3,
   })
 
   const handleToggleTodo = ({ isDone, taskId }: MutateToggleTask) => {
-    toggleTodoMutate({
+    toggleTaskMutate({
       isDone,
       taskId,
     })
@@ -251,8 +253,8 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
     })
   }
 
-  const handleDeleteTodo = ({ taskId }: MutateDeleteTask) => {
-    deleteTodoMutate({ taskId })
+  const handleDeleteTask = ({ taskId }: MutateDeleteTask) => {
+    deleteTaskMutate({ taskId })
   }
 
   const handleChangeTaskName = (props: MutateChangeTaskTextInput) => {
@@ -369,7 +371,7 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                         </AlertDialogCancel>
                         <AlertDialogAction asChild>
                           <Button
-                            onClick={() => handleDeleteTodo({ taskId: task.id })}
+                            onClick={() => handleDeleteTask({ taskId: task.id })}
                             className="__block"
                           >
                             <IconTrash
