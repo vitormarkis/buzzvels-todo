@@ -1,27 +1,30 @@
-import { Button } from "@/components/ui/button"
-import st from "./page.module.css"
-import { cn } from "@/lib/utils"
 import { CenteredContainer } from "@/components/container/centered-container/CenteredContainer"
-import { Header, Sidebar } from "@/components/organisms"
-import { IconPlus } from "@/components/icons"
-import { ModalCreateNewTask } from "@/components/modal"
-import { redis } from "@/lib/redis"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useAuth } from "@clerk/nextjs"
-import { SubtaskSession, TaskSession, subtaskSchema, taskSchemaAPI } from "@/fetchs/tasks/schema"
-import { z } from "zod"
 import { PadWrapper } from "@/components/container/pad-container/PadWrapper"
-import { ToDo, ToDoSkeleton } from "@/components/molecules/to-do/ToDo"
-import { CreateNewTaskForm } from "@/form/create-new-task/schema"
+import { IconPlus } from "@/components/icons"
+import { IconWrite } from "@/components/icons/IconWrite"
+import { ModalCreateNewTask } from "@/components/modal"
+import { SortingBar } from "@/components/molecules/sorting-bar/SortingBar"
+import { TasksList } from "@/components/molecules/tasks-list/TasksList"
+import { Header, Sidebar } from "@/components/organisms"
+import { Button } from "@/components/ui/button"
+import { useToast } from "@/components/ui/use-toast"
 import { useUserInfo } from "@/contexts/user-info/userInfoContext"
+import { useTasks } from "@/factories/createTasks"
+import { SubtaskSession, TaskSession, subtaskSchema, taskSchemaAPI } from "@/fetchs/tasks/schema"
+import { CreateNewTaskForm } from "@/form/create-new-task/schema"
+import { useScrollPosition } from "@/hooks/useScrollPosition"
+import { useTasksListState } from "@/hooks/useTasksListState"
+import { redis } from "@/lib/redis"
+import { cn } from "@/lib/utils"
+import { ClerkBuilder } from "@/types/clerkBuilder"
+import { useAuth } from "@clerk/nextjs"
+import { User, buildClerkProps, clerkClient, getAuth } from "@clerk/nextjs/server"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { GetServerSideProps } from "next"
 import { useEffect, useState } from "react"
 import { createPortal } from "react-dom"
-import { IconWrite } from "@/components/icons/IconWrite"
-import { clerkClient, getAuth, buildClerkProps, User } from "@clerk/nextjs/server"
-import { GetServerSideProps } from "next"
-import { ClerkBuilder } from "@/types/clerkBuilder"
-import { useToast } from "@/components/ui/use-toast"
-import { IconFolderOpen } from "@/components/icons/IconFolderOpen"
+import { z } from "zod"
+import st from "./page.module.css"
 
 type ServerSideProps = {
   user?: User | null | undefined
@@ -44,12 +47,12 @@ export default function Home({ user }: ServerSideProps) {
   const { userId } = useAuth()
   const { headers } = useUserInfo()
   const queryClient = useQueryClient()
-  const tasksCache = queryClient.getQueryData(["tasksIds", userId])
+  const tasksCache: TaskSession[] | undefined = queryClient.getQueryData(["tasksIds", userId])
   const [isMounted, setIsMounted] = useState(false)
-  const hasSession = !!user
   const { toast } = useToast()
+  const { sortCurrent } = useTasksListState()
 
-  const { data: rawTasks, isLoading } = useQuery({
+  const { data: tasksResponse } = useQuery<TaskSession[]>({
     queryKey: ["tasksIds", userId],
     queryFn: async () => {
       const [tasksIds, subtasksIds] = await Promise.all([
@@ -106,7 +109,7 @@ export default function Home({ user }: ServerSideProps) {
         }
       })
 
-      return tasksWithSubtasks
+      return tasksWithSubtasks as TaskSession[]
     },
     staleTime: 1000 * 60, // 1 minute
     refetchOnWindowFocus: false,
@@ -122,6 +125,9 @@ export default function Home({ user }: ServerSideProps) {
         ),
       })
     },
+  })
+  const { tasks } = useTasks(tasksResponse, {
+    sortCurrent,
   })
 
   const { mutate: createNewTodoMutate } = useMutation<{}, {}, CreateNewTaskForm>({
@@ -164,8 +170,6 @@ export default function Home({ user }: ServerSideProps) {
     retry: 3,
   })
 
-  const tasks = rawTasks?.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
-
   useEffect(() => {
     if (isLoadingNewTask) setIsLoadingNewTask(false)
   }, [tasksCache])
@@ -174,19 +178,9 @@ export default function Home({ user }: ServerSideProps) {
     setIsMounted(true)
   }, [])
 
-  useEffect(() => {
-    const scrollListener = () => {
-      if (window.scrollY > 120) {
-        setFloatingNewTaskVisible(true)
-      } else {
-        setFloatingNewTaskVisible(false)
-      }
-    }
-
-    window.addEventListener("scroll", scrollListener)
-
-    return () => window.removeEventListener("scroll", scrollListener)
-  }, [])
+  useScrollPosition(setFloatingNewTaskVisible, {
+    range: [120, Infinity],
+  })
 
   return (
     <>
@@ -217,33 +211,16 @@ export default function Home({ user }: ServerSideProps) {
               className="__neutral mx-auto"
             >
               <IconPlus size={16} />
-              New task
+              <span>New task</span>
             </Button>
           </ModalCreateNewTask>
           <PadWrapper className="__two">
-            {isLoadingNewTask && <ToDoSkeleton />}
-            {/* {true && <ToDoSkeleton />} */}
-            {tasks?.length && tasks.length > 0 ? (
-              tasks.map((task: TaskSession) => (
-                <ToDo
-                  key={task.id}
-                  className="__first"
-                  task={task}
-                />
-              ))
-            ) : (
-              <>
-                {!isLoadingNewTask && (
-                  <div className="py-4 flex flex-col gap-2 items-center">
-                    <h3 className="text-center text-color-soft text-xl">There is no tasks yet.</h3>
-                    <IconFolderOpen
-                      size={80}
-                      className="text-color-soft"
-                    />
-                  </div>
-                )}
-              </>
-            )}
+            <SortingBar />
+            <TasksList
+              tasks={tasks ?? null}
+              className="__two"
+              isLoadingNewTask={isLoadingNewTask}
+            />
           </PadWrapper>
         </main>
       </CenteredContainer>

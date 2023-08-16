@@ -1,65 +1,62 @@
-import React, { useState } from "react"
-import { cn } from "@/lib/utils"
-import { PadContainer } from "@/components/container/pad-container/PadContainer"
-import { Checkbox } from "@/components/ui/checkbox"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { SubtaskSession, TaskSession } from "@/fetchs/tasks/schema"
-import { useAuth } from "@clerk/nextjs"
-import { Button } from "@/components/ui/button"
-import { IconThreeDotsVertical } from "@/components/icons/IconThreeDotsVertical"
 import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-} from "@/components/ui/dropdown-menu"
+  TodoAction,
+  TodoActionsContainer,
+  TodoCheckbox,
+  TodoContainer,
+  TodoEditableLabel,
+  TodoProvider,
+} from "@/components/app/todo"
+import { PadContainer } from "@/components/container/pad-container/PadContainer"
+import { EditableLabel } from "@/components/editable-label/EditableLabel"
+import { IconPlus, IconX } from "@/components/icons"
+import { IconListTree } from "@/components/icons/IconListTree"
+import { IconThreeDotsVertical } from "@/components/icons/IconThreeDotsVertical"
 import { IconTrash } from "@/components/icons/IconTrash"
-import { AlertDialogHeader, AlertDialogFooter } from "@/components/ui/alert-dialog"
+import { Accordion, AccordionContent, AccordionItem } from "@/components/ui/accordion"
 import {
   AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogCancel,
   AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { EditableLabel } from "@/components/editable-label/EditableLabel"
-import { Accordion, AccordionContent, AccordionItem } from "@/components/ui/accordion"
-import { IconListTree } from "@/components/icons/IconListTree"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
-  TodoProvider,
-  TodoContainer,
-  TodoCheckbox,
-  TodoEditableLabel,
-  TodoActionsContainer,
-  TodoAction,
-} from "@/components/app/todo"
-import { CheckedState } from "@radix-ui/react-checkbox"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { useToast } from "@/components/ui/use-toast"
 import { useUserInfo } from "@/contexts/user-info/userInfoContext"
+import { createQueryCache } from "@/factories/createQueryCache"
+import { SubtaskSession, TaskSession } from "@/fetchs/tasks/schema"
+import { cn } from "@/lib/utils"
 import {
-  MutateCreateNewSubtask,
-  MutateCreateNewSubtaskInput,
-  mutateCreateNewSubtaskSchema,
-} from "@/schemas/subtask/create"
-import { IconPlus, IconX } from "@/components/icons"
+  MutateChangeSubtaskTextInput,
+  mutateChangeSubtaskTextSchema,
+} from "@/schemas/subtask/change"
+import { MutateCreateNewSubtaskInput, mutateCreateNewSubtaskSchema } from "@/schemas/subtask/create"
 import {
   MutateDeleteSubtaskInput,
   SubtaskRequestBodySchemaInput,
   mutateDeleteSubtaskSchema,
 } from "@/schemas/subtask/delete"
-import { nanoid } from "nanoid"
-import { createQueryCache } from "@/factories/createQueryCache"
-import {
-  MutateChangeSubtaskTextInput,
-  mutateChangeSubtaskTextSchema,
-} from "@/schemas/subtask/change"
 import { MutateChangeTaskTextInput, mutateChangeTaskTextSchema } from "@/schemas/task/change"
-import { useToast } from "@/components/ui/use-toast"
 import { changeSubtaskTextMutationFunction } from "@/services/react-query/mutations/changeSubtaskTextMutationFunction"
+import { changeTaskTextMutationFunction } from "@/services/react-query/mutations/changeTaskTextMutationFunction"
 import { deleteTaskMutationFunction } from "@/services/react-query/mutations/deleteTaskMutationFunction"
 import { toggleSubtaskMutationFunction } from "@/services/react-query/mutations/toggleSubtaskMutationFunction"
 import { toggleTaskMutationFunction } from "@/services/react-query/mutations/toggleTodoMutationFunction"
-import { changeTaskTextMutationFunction } from "@/services/react-query/mutations/changeTaskTextMutationFunction"
+import { useAuth } from "@clerk/nextjs"
+import { CheckedState } from "@radix-ui/react-checkbox"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { nanoid } from "nanoid"
+import React, { useState } from "react"
 
 export type MutateToggleTask = { taskId: string; isDone: boolean }
 export type MutateToggleSubtask = { subtask: SubtaskSession; isDone: CheckedState }
@@ -309,22 +306,28 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
           value="subtasks"
           className="flex flex-col"
         >
-          <div className="flex">
+          <div className="flex gap-2">
             <div className="flex items-center gap-2 flex-1">
               <Checkbox
                 checked={task.isDone}
                 onCheckedChange={isDone => handleToggleTodo({ isDone: !!isDone, taskId: task.id })}
               />
-              <EditableLabel
-                state={[text, setText]}
-                data-completed={task.isDone}
-                taskId={task.id}
-                className="flex-1"
-                onAction={newValue => handleChangeTaskName({ taskId: task.id, text: newValue })}
-              />
+              <div className="flex w-full grow items-end xs:items-center py-3 xs:py-0 xs:gap-2 flex-col xs:flex-row">
+                <EditableLabel
+                  state={[text, setText]}
+                  isCompleted={task.isDone}
+                  taskId={task.id}
+                  className="flex-1"
+                  onAction={newValue => handleChangeTaskName({ taskId: task.id, text: newValue })}
+                />
+                {task.endDate && (
+                  <div className="__action -order-1 xs:order-none flex items-center h-4 text-xs rounded-full px-4 bg-background text-color-strong">
+                    <span>{new Date(task.endDate).toLocaleDateString()}</span>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-1.5">
-              {/* <AccordionTrigger asChild> */}
               <Button
                 data-nosubtasks={task.subtasks.length === 0}
                 className="h-8 w-8 p-0 data-[nosubtasks=true]:opacity-50 data-[nosubtasks=true]:hover:opacity-100 transition"
@@ -332,7 +335,6 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
               >
                 <IconListTree />
               </Button>
-              {/* </AccordionTrigger> */}
               <DropdownMenu>
                 <DropdownMenuTrigger>
                   <Button className="h-8 w-8 p-0">
@@ -426,7 +428,7 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Delete Sub-task</AlertDialogTitle>
                                 <div className="flex flex-col gap-2">
-                                  <p className="__two bg-background py-2 px-4 rounded-lg text-color">
+                                  <p className="__two bg-background py-2 px-4 rounded-lg text-color-strong">
                                     {subtask.task}
                                   </p>
                                   <AlertDialogDescription>
@@ -465,7 +467,6 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                     </TodoProvider>
                   ))
                 ) : (
-                  // NOSUBTASKS
                   <TodoProvider
                     onCheckedChange={setIsNewSubtaskDone}
                     checked={isNewSubtaskDone}
@@ -503,7 +504,6 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                   </TodoProvider>
                 )}
                 {task.subtasks.length > 0 && isAddingNewSubtask && (
-                  // ADDNEWSUBTASK
                   <TodoProvider
                     onCheckedChange={setIsNewSubtaskDone}
                     checked={isNewSubtaskDone}
@@ -548,8 +548,11 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                 className="__neutral disabled:opacity-50 disabled:cursor-not-allowed ml-2 h-5 text-xs w-fit pr-4 pl-2"
                 disabled={isAddingNewSubtask}
               >
-                <IconPlus size={10} />
-                New task
+                <IconPlus
+                  size={10}
+                  className="text-color-strong"
+                />
+                <span>New task</span>
               </Button>
             </div>
           </AccordionContent>

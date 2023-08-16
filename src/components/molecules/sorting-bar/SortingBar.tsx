@@ -1,0 +1,53 @@
+import { useTasksListState } from "@/hooks/useTasksListState"
+import { cn } from "@/lib/utils"
+import React from "react"
+
+export type SortingBarProps = React.ComponentPropsWithoutRef<"div"> & {}
+
+export const SortingBar = React.forwardRef<React.ElementRef<"div">, SortingBarProps>(
+  function SortingBarComponent({ ...props }, ref) {
+    const { toggleSort, sortCurrent } = useTasksListState()
+    const { date, text } = sortCurrent
+
+    return (
+      <div
+        {...props}
+        className={cn("flex pl-2", props.className)}
+        ref={ref}
+      >
+        <div className="grow py-1.5">
+          <h2 className="text-lg font-medium text-heading">Your To-do's</h2>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="grid place-items-center text-xs border border-transparent bg-special-slate px-2 h-6 rounded-lg cursor-default">
+            <span>Sorting:</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              data-active={!!date}
+              className={cn(
+                "__first text-xs bg-transparent h-6 px-2 rounded-lg text-color-soft transition",
+                "data-[active=true]:bg-background hover:text-color-strong"
+              )}
+              onClick={() => toggleSort("date")}
+            >
+              <span>Date</span>
+            </button>
+            <button
+              data-active={!!text}
+              className={cn(
+                "__first text-xs bg-transparent h-6 px-2 rounded-lg text-color-soft transition",
+                "data-[active=true]:bg-background hover:text-color-strong"
+              )}
+              onClick={() => toggleSort("text")}
+            >
+              <span>Text</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+)
+
+SortingBar.displayName = "SortingBar"

@@ -44,10 +44,16 @@ export function createTasksCache(queryClient: QueryClient, userId?: UserID) {
     set(newTasks)
   }
 
+  const sort = (sorterMethod: (a: TaskSession, b: TaskSession) => number) => {
+    const newTasks = tasks.sort(sorterMethod)
+    set(newTasks)
+  }
+
   return {
     set,
     toggle,
     changeText,
     remove,
+    sort,
   }
 }

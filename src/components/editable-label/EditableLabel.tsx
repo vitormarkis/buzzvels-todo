@@ -1,17 +1,8 @@
-import React, {
-  ChangeEvent,
-  Dispatch,
-  FocusEventHandler,
-  SetStateAction,
-  useEffect,
-  useRef,
-  useState,
-} from "react"
 import { cn } from "@/lib/utils"
-import st from "./EditableLabel.module.css"
 import { handleKeyPressed } from "@/utils/units/handleKeyUp"
-import { cva, VariantProps } from "class-variance-authority"
-import { z } from "zod"
+import { VariantProps, cva } from "class-variance-authority"
+import React, { ChangeEvent, Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
+import st from "./EditableLabel.module.css"
 
 const editableTextVariables = cva("px-1.5", {
   variants: {
@@ -172,7 +163,6 @@ export const EditableLabel = React.forwardRef<React.ElementRef<"div">, EditableL
         {/* {true && ( */}
         {isEditing && (
           <textarea
-            data-completed={isCompleted}
             ref={inputRef}
             className={editableTextVariables({
               padding,
@@ -191,16 +181,15 @@ export const EditableLabel = React.forwardRef<React.ElementRef<"div">, EditableL
           />
         )}
         <span
+          data-completed={isCompleted}
           className={cn(
             editableTextVariables({
               textStyle,
               className: cn(
-                "whitespace-pre-wrap cursor-default relative data-[completed=true]:text-color data-[completed=true]:line-through",
+                "whitespace-pre-wrap cursor-default relative text-color-strong data-[completed=true]:text-color-soft data-[completed=true]:line-through",
                 {
                   "opacity-0 -z-10": isEditing,
                   "text-color-soft cursor-text": !isEditing && text.length === 0,
-                  // "opacity-0 -z-10": true,
-                  // "text-color-soft cursor-text": false && text.length === 0,
                 }
               ),
             }),
@@ -209,7 +198,6 @@ export const EditableLabel = React.forwardRef<React.ElementRef<"div">, EditableL
         >
           {text.length === 0 ? placeholder : text}
         </span>
-        {/* <span className="text-xs text-color-soft">{taskId}</span> */}
       </div>
     )
   }

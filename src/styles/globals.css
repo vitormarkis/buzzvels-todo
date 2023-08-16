@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+.bg-special-slate {
+  background: linear-gradient(45deg, rgba(var(--background) / 1), rgba(var(--background-shadow) / 1), rgba(var(--background) / 1)) padding-box, linear-gradient(309deg, rgba(var(--color-strong) / 0.1), rgba(var(--color-strong) / 0.2)) border-box;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -72,8 +76,8 @@
   --background: var(--electric-violet-500);
   --background-shadow: var(--electric-violet-600);
   --color: var(--white);
-  --color-soft: inherit;
-  --color-strong: inherit;
+  --color-soft: var(--white);
+  --color-strong: var(--white);
   --heading: inherit;
   --heading-soft: inherit;
   --heading-sub: inherit;
@@ -118,6 +122,8 @@
     --background: var(--black);
     --background-shadow: var(--black-300);
     --color: var(--white);
+    --color-soft: var(--white);
+    --color-strong: var(--white);
     --ring: var(--black-100);
     --symbol: var(--white);
   }
@@ -165,6 +171,8 @@
     --background: var(--white);
     --background-shadow: var(--white-300);
     --color: var(--black);
+    --color-soft: var(--black);
+    --color-strong: var(--black);
     --ring: var(--white-100);
     --symbol: var(--black);
   }
