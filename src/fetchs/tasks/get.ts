@@ -1,8 +1,14 @@
 import { TaskSession } from "@/fetchs/tasks/schema"
-import { redis } from "@/lib/redis"
 
-export async function getTasks<T = TaskSession>(userId: string | null | undefined): Promise<T[]> {
-  const tasksIds = await redis.lrange(`tasks:${userId}`, 0, 9)
-  const tasks = await Promise.all(tasksIds.map(taskId => redis.hgetall(taskId)))
-  return tasks as T[]
+export async function getTasks<T = TaskSession>(headers: Headers): Promise<T[]> {
+  const response = await fetch("/api/task", {
+    headers,
+  })
+
+  if (!response.ok) {
+    throw new Error("Failed to retrieve your tasks")
+  }
+
+  const data = await response.json()
+  return data as T[]
 }

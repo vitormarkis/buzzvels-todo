@@ -587,7 +587,7 @@ export const ToDoSkeleton = React.forwardRef<React.ElementRef<"div">, ToDoSkelet
       >
         <div className="flex items-center gap-2 flex-1">
           <Checkbox checked={false} />
-          <div className="w-full px-1.5 py-3.5">
+          <div className="w-full px-1.5 py-[1.625rem] xs:py-3.5">
             <div className="__two h-5 rounded bg-background animate-pulse w-full max-w-[14rem]" />
           </div>
         </div>

@@ -1,5 +1,3 @@
-import React from "react"
-import { cn } from "@/lib/utils"
 import { useTodosGroup } from "@/contexts/todos-group/todosGroupContext"
 
 export function Sidebar() {
@@ -7,7 +5,8 @@ export function Sidebar() {
 
   return (
     <>
-      <div className="flex flex-col w-full">
+      <p className="mt-4 text-center text-color text-sm w-full">You're welcome!</p>
+      {/* <div className="flex flex-col w-full">
         {todoGroups.map(group => (
           <button
             key={group.name}
@@ -21,7 +20,7 @@ export function Sidebar() {
             {group.label}
           </button>
         ))}
-      </div>
+      </div> */}
     </>
   )
 }

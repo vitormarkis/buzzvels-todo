@@ -12,7 +12,11 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { CreateNewTaskForm, createNewTaskFormSchema } from "@/form/create-new-task/schema"
+import {
+  CreateNewTaskForm,
+  CreateNewTaskFormInput,
+  createNewTaskFormSchema,
+} from "@/form/create-new-task/schema"
 import { cn } from "@/lib/utils"
 import { useAuth } from "@clerk/nextjs"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -45,7 +49,7 @@ export const ModalCreateNewTask = React.forwardRef<
     return open
   }
 
-  const methods = useForm<CreateNewTaskForm>({
+  const methods = useForm<CreateNewTaskFormInput>({
     defaultValues: {
       task: "",
       endDate: null,
@@ -53,9 +57,10 @@ export const ModalCreateNewTask = React.forwardRef<
     resolver: zodResolver(createNewTaskFormSchema),
   })
 
-  const submitHandler: SubmitHandler<CreateNewTaskForm> = async formData => {
+  const submitHandler: SubmitHandler<CreateNewTaskFormInput> = async formData => {
+    const taskMutateProps = formData as CreateNewTaskForm
     setIsModalOpen(false)
-    mutate(formData)
+    mutate(taskMutateProps)
   }
 
   return (

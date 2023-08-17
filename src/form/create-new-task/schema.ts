@@ -20,4 +20,5 @@ export const createNewTaskFormSchema = z
     }
   })
 
-export type CreateNewTaskForm = z.input<typeof createNewTaskFormSchema>
+export type CreateNewTaskFormInput = z.input<typeof createNewTaskFormSchema>
+export type CreateNewTaskForm = z.output<typeof createNewTaskFormSchema>

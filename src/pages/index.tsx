@@ -10,12 +10,13 @@ import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import { useUserInfo } from "@/contexts/user-info/userInfoContext"
 import { useTasks } from "@/factories/createTasks"
-import { SubtaskSession, TaskSession, subtaskSchema, taskSchemaAPI } from "@/fetchs/tasks/schema"
+import { getTasks } from "@/fetchs/tasks/get"
+import { TaskSession } from "@/fetchs/tasks/schema"
 import { CreateNewTaskForm } from "@/form/create-new-task/schema"
 import { useScrollPosition } from "@/hooks/useScrollPosition"
 import { useTasksListState } from "@/hooks/useTasksListState"
-import { redis } from "@/lib/redis"
 import { cn } from "@/lib/utils"
+import { createNewTodoMutationFunction } from "@/services/react-query/mutations/createNewTodoMutationFunction"
 import { ClerkBuilder } from "@/types/clerkBuilder"
 import { useAuth } from "@clerk/nextjs"
 import { User, buildClerkProps, clerkClient, getAuth } from "@clerk/nextjs/server"
@@ -23,7 +24,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { GetServerSideProps } from "next"
 import { useEffect, useState } from "react"
 import { createPortal } from "react-dom"
-import { z } from "zod"
 import st from "./page.module.css"
 
 type ServerSideProps = {
@@ -44,73 +44,19 @@ export default function Home({ user }: ServerSideProps) {
   const [floatingNewTaskVisible, setFloatingNewTaskVisible] = useState(false)
   const [isLoadingNewTask, setIsLoadingNewTask] = useState(false)
 
+  console.log({ isLoadingNewTask })
+
   const { userId } = useAuth()
   const { headers } = useUserInfo()
   const queryClient = useQueryClient()
   const tasksCache: TaskSession[] | undefined = queryClient.getQueryData(["tasksIds", userId])
   const [isMounted, setIsMounted] = useState(false)
   const { toast } = useToast()
-  const { sortCurrent, resetSort, setSortState, setLastSort } = useTasksListState()
+  const { sortCurrent, resetSort, setSortState } = useTasksListState()
 
   const { data: tasksResponse } = useQuery<TaskSession[]>({
     queryKey: ["tasksIds", userId],
-    queryFn: async () => {
-      const [tasksIds, subtasksIds] = await Promise.all([
-        redis.lrange(`tasks:${userId}`, 0, -1),
-        redis.lrange(`subtasks:${userId}`, 0, -1),
-      ])
-
-      const [unparsedTasks, unparsedSubtasks] = await Promise.all([
-        Promise.all(tasksIds.map(taskId => redis.hgetall(taskId))),
-        Promise.all(subtasksIds.map(subtaskId => redis.hgetall(subtaskId))),
-      ])
-
-      const [tasks, subtasks] = await Promise.all([
-        z.array(taskSchemaAPI).parseAsync(unparsedTasks),
-        z.array(subtaskSchema).parseAsync(unparsedSubtasks),
-      ])
-
-      const subtasksEntries = subtasks.reduce(
-        (newTasksAcc, subtask) => {
-          const alreadyHasObjectWithTaskId = newTasksAcc.find(i => i.id === subtask.taskId)
-
-          if (alreadyHasObjectWithTaskId) {
-            newTasksAcc = newTasksAcc.map(taskWithSubtasks =>
-              taskWithSubtasks.id === subtask.taskId
-                ? {
-                    ...taskWithSubtasks,
-                    subtasks: [...taskWithSubtasks.subtasks, subtask],
-                  }
-                : taskWithSubtasks
-            )
-          } else {
-            newTasksAcc = [
-              ...newTasksAcc,
-              {
-                id: subtask.taskId,
-                subtasks: [subtask],
-              },
-            ]
-          }
-
-          return newTasksAcc
-        },
-        [] as Array<{
-          id: string
-          subtasks: SubtaskSession[]
-        }>
-      )
-
-      const tasksWithSubtasks = tasks.map(task => {
-        const { subtasks = [] } = subtasksEntries.find(stEntry => stEntry.id === task.id) ?? {}
-        return {
-          ...task,
-          subtasks,
-        }
-      })
-
-      return tasksWithSubtasks as TaskSession[]
-    },
+    queryFn: () => getTasks(headers),
     staleTime: 1000 * 60, // 1 minute
     refetchOnWindowFocus: false,
     onError: () => {
@@ -125,31 +71,15 @@ export default function Home({ user }: ServerSideProps) {
         ),
       })
     },
+    enabled: !!userId,
+    retry: 3,
   })
   const { tasks } = useTasks(tasksResponse, {
     sortCurrent,
   })
 
   const { mutate: createNewTodoMutate } = useMutation<{}, {}, CreateNewTaskForm>({
-    mutationFn: async ({ task, endDate, hasDeadlineDate }) => {
-      setIsLoadingNewTask(true)
-
-      const response = await fetch("/api/task", {
-        body: JSON.stringify({
-          task,
-          endDate,
-          hasDeadlineDate,
-        }),
-        method: "POST",
-        headers,
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to create task")
-      }
-
-      return response
-    },
+    mutationFn: props => createNewTodoMutationFunction(props, headers),
     onError: () => {
       toast({
         variant: "destructive",
@@ -161,6 +91,9 @@ export default function Home({ user }: ServerSideProps) {
           </>
         ),
       })
+    },
+    onMutate: () => {
+      setIsLoadingNewTask(true)
     },
     onSuccess: () => {
       resetSort()

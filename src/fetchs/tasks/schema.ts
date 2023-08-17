@@ -4,7 +4,7 @@ export const taskSchemaAPI = z
   .object({
     id: z.string(),
     endDate: z.number().nullable(),
-    createdAt: z.number(),
+    createdAt: z.number().default(new Date().getTime()),
     task: z.string().min(1),
     isDone: z.boolean().default(false),
   })
