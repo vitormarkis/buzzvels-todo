@@ -287,278 +287,288 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
   }
 
   return (
-    <PadContainer
-      {...props}
-      className={cn(
-        "min-h-[3rem] py-0 px-4 justify-between relative overflow-hidden",
-        props.className
+    <div className={cn("relative", task.endDate && "mt-1.5 xs:mt-0")}>
+      {task.endDate && (
+        <div className="__action absolute z-10 right-3 -top-1.5 flex xs:hidden items-center h-4 text-xs rounded-full px-4 bg-background text-color-strong">
+          <span>{new Date(task.endDate).toLocaleDateString()}</span>
+        </div>
       )}
-      ref={ref}
-    >
-      <Accordion
-        type="single"
-        collapsible
-        className="flex-1"
-        value={whichAccordionOpen}
-        onValueChange={setWhichAccordionOpen}
+      <PadContainer
+        {...props}
+        className={cn(
+          "min-h-[3rem] py-0 px-4 justify-between relative overflow-hidden rounded-none xs:rounded-[0.625rem]",
+          props.className
+        )}
+        ref={ref}
       >
-        <AccordionItem
-          value="subtasks"
-          className="flex flex-col"
+        <Accordion
+          type="single"
+          collapsible
+          className="flex-1"
+          value={whichAccordionOpen}
+          onValueChange={setWhichAccordionOpen}
         >
-          <div className="flex gap-2">
-            <div className="flex items-center gap-2 flex-1">
-              <Checkbox
-                checked={task.isDone}
-                onCheckedChange={isDone => handleToggleTodo({ isDone: !!isDone, taskId: task.id })}
-              />
-              <div className="flex w-full grow items-end xs:items-center py-3 xs:py-0 xs:gap-2 flex-col xs:flex-row">
-                <EditableLabel
-                  state={[text, setText]}
-                  isCompleted={task.isDone}
-                  taskId={task.id}
-                  className="flex-1"
-                  onAction={newValue => handleChangeTaskName({ taskId: task.id, text: newValue })}
+          <AccordionItem
+            value="subtasks"
+            className="flex flex-col"
+          >
+            <div className="flex gap-2">
+              <div className="flex items-start gap-2 flex-1">
+                <Checkbox
+                  checked={task.isDone}
+                  onCheckedChange={isDone =>
+                    handleToggleTodo({ isDone: !!isDone, taskId: task.id })
+                  }
+                  className="mt-7 xs:mt-3.5"
                 />
-                {task.endDate && (
-                  <div className="__action -order-1 xs:order-none flex items-center h-4 text-xs rounded-full px-4 bg-background text-color-strong">
-                    <span>{new Date(task.endDate).toLocaleDateString()}</span>
-                  </div>
-                )}
+                <div className="flex w-full grow items-center py-3 xs:py-0 xs:gap-2">
+                  <EditableLabel
+                    state={[text, setText]}
+                    isCompleted={task.isDone}
+                    taskId={task.id}
+                    className="flex-1"
+                    onAction={newValue => handleChangeTaskName({ taskId: task.id, text: newValue })}
+                  />
+                  {task.endDate && (
+                    <div className="__action hidden xs:flex items-center h-4 text-xs rounded-full px-4 bg-background text-color-strong">
+                      <span>{new Date(task.endDate).toLocaleDateString()}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Button
+                  data-nosubtasks={task.subtasks.length === 0}
+                  className="h-8 w-8 p-0 data-[nosubtasks=true]:opacity-50 data-[nosubtasks=true]:hover:opacity-100 transition"
+                  onClick={handleToggleAccordion["subtasks"]}
+                >
+                  <IconListTree />
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger>
+                    <Button className="h-8 w-8 p-0">
+                      <IconThreeDotsVertical className="text-color-strong" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className="h-9 px-2 py-1.5 cursor-default justify-start w-full font-normal rounded-sm"
+                        >
+                          <IconTrash
+                            size={16}
+                            style={{ color: "inherit" }}
+                          />
+                          <span>Delete</span>
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete To-do</AlertDialogTitle>
+                          <div className="flex flex-col gap-2">
+                            <p className="__two bg-background py-2 px-4 rounded-lg text-color">
+                              {task.task}
+                            </p>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete permanently this to-do?
+                            </AlertDialogDescription>
+                          </div>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel asChild>
+                            <Button variant="default">
+                              <span>Cancel</span>
+                            </Button>
+                          </AlertDialogCancel>
+                          <AlertDialogAction asChild>
+                            <Button
+                              onClick={() => handleDeleteTask({ taskId: task.id })}
+                              className="__block"
+                            >
+                              <IconTrash
+                                size={16}
+                                style={{ color: "inherit" }}
+                              />
+                              <span>Confirm</span>
+                            </Button>
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Button
-                data-nosubtasks={task.subtasks.length === 0}
-                className="h-8 w-8 p-0 data-[nosubtasks=true]:opacity-50 data-[nosubtasks=true]:hover:opacity-100 transition"
-                onClick={handleToggleAccordion["subtasks"]}
-              >
-                <IconListTree />
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger>
-                  <Button className="h-8 w-8 p-0">
-                    <IconThreeDotsVertical className="text-color-strong" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="h-9 px-2 py-1.5 cursor-default justify-start w-full font-normal rounded-sm"
+            <AccordionContent className="flex data-[state=open]:pb-4 w-full">
+              <div className="px-3">
+                <div className="h-full border-r" />
+              </div>
+              <div className="flex-1 flex flex-col gap-3">
+                <div className="flex flex-col gap-1">
+                  {task.subtasks.length > 0 ? (
+                    task.subtasks.map(subtask => (
+                      <TodoProvider
+                        key={subtask.id}
+                        onCheckedChange={isDone => handleToggleSubtask({ isDone, subtask })}
+                        checked={subtask.isDone}
+                        initialLabelValue={subtask.task}
+                        onLabelChange={newValue =>
+                          handleChangeSubtaskText({ subtaskId: subtask.id, text: newValue })
+                        }
                       >
-                        <IconTrash
-                          size={16}
-                          style={{ color: "inherit" }}
-                        />
-                        <span>Delete</span>
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete To-do</AlertDialogTitle>
-                        <div className="flex flex-col gap-2">
-                          <p className="__two bg-background py-2 px-4 rounded-lg text-color">
-                            {task.task}
-                          </p>
-                          <AlertDialogDescription>
-                            Are you sure you want to delete permanently this to-do?
-                          </AlertDialogDescription>
-                        </div>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel asChild>
-                          <Button variant="default">
-                            <span>Cancel</span>
-                          </Button>
-                        </AlertDialogCancel>
-                        <AlertDialogAction asChild>
-                          <Button
-                            onClick={() => handleDeleteTask({ taskId: task.id })}
-                            className="__block"
-                          >
-                            <IconTrash
-                              size={16}
-                              style={{ color: "inherit" }}
-                            />
-                            <span>Confirm</span>
-                          </Button>
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-          <AccordionContent className="flex data-[state=open]:pb-4 w-full">
-            <div className="px-3">
-              <div className="h-full border-r" />
-            </div>
-            <div className="flex-1 flex flex-col gap-3">
-              <div className="flex flex-col gap-1">
-                {task.subtasks.length > 0 ? (
-                  task.subtasks.map(subtask => (
+                        <TodoContainer>
+                          <TodoCheckbox />
+                          <TodoEditableLabel
+                            disableActionOnNoChange
+                            taskId={subtask.id}
+                            padding="v-small"
+                          />
+                          <TodoActionsContainer>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <TodoAction>
+                                  <IconX size={14} />
+                                </TodoAction>
+                              </AlertDialogTrigger>
+
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Sub-task</AlertDialogTitle>
+                                  <div className="flex flex-col gap-2">
+                                    <p className="__two bg-background py-2 px-4 rounded-lg text-color-strong">
+                                      {subtask.task}
+                                    </p>
+                                    <AlertDialogDescription>
+                                      Are you sure you want to delete permanently this sub-task?
+                                    </AlertDialogDescription>
+                                  </div>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel asChild>
+                                    <Button variant="default">
+                                      <span>Cancel</span>
+                                    </Button>
+                                  </AlertDialogCancel>
+                                  <AlertDialogAction asChild>
+                                    <Button
+                                      onClick={() =>
+                                        handleDeleteSubtask({
+                                          id: subtask.id,
+                                          taskId: task.id,
+                                        })
+                                      }
+                                      className="__block"
+                                    >
+                                      <IconTrash
+                                        size={16}
+                                        style={{ color: "inherit" }}
+                                      />
+                                      <span>Confirm</span>
+                                    </Button>
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </TodoActionsContainer>
+                        </TodoContainer>
+                      </TodoProvider>
+                    ))
+                  ) : (
                     <TodoProvider
-                      key={subtask.id}
-                      onCheckedChange={isDone => handleToggleSubtask({ isDone, subtask })}
-                      checked={subtask.isDone}
-                      initialLabelValue={subtask.task}
-                      onLabelChange={newValue =>
-                        handleChangeSubtaskText({ subtaskId: subtask.id, text: newValue })
+                      onCheckedChange={setIsNewSubtaskDone}
+                      checked={isNewSubtaskDone}
+                      initialLabelValue=""
+                      onLabelChange={newText =>
+                        handleCreateNewSubtask({
+                          taskId: task.id,
+                          isDone: !!isNewSubtaskDone,
+                          task: newText,
+                        })
                       }
                     >
                       <TodoContainer>
                         <TodoCheckbox />
                         <TodoEditableLabel
-                          disableActionOnNoChange
-                          taskId={subtask.id}
+                          selectAutoFocus
+                          disableAction
                           padding="v-small"
+                          textStyle="new"
                         />
                         <TodoActionsContainer>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <TodoAction>
-                                <IconX size={14} />
-                              </TodoAction>
-                            </AlertDialogTrigger>
-
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Sub-task</AlertDialogTitle>
-                                <div className="flex flex-col gap-2">
-                                  <p className="__two bg-background py-2 px-4 rounded-lg text-color-strong">
-                                    {subtask.task}
-                                  </p>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to delete permanently this sub-task?
-                                  </AlertDialogDescription>
-                                </div>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel asChild>
-                                  <Button variant="default">
-                                    <span>Cancel</span>
-                                  </Button>
-                                </AlertDialogCancel>
-                                <AlertDialogAction asChild>
-                                  <Button
-                                    onClick={() =>
-                                      handleDeleteSubtask({
-                                        id: subtask.id,
-                                        taskId: task.id,
-                                      })
-                                    }
-                                    className="__block"
-                                  >
-                                    <IconTrash
-                                      size={16}
-                                      style={{ color: "inherit" }}
-                                    />
-                                    <span>Confirm</span>
-                                  </Button>
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                          <TodoAction className="__neutral bg-background">
+                            <IconPlus size={14} />
+                          </TodoAction>
+                          <TodoAction
+                            onClick={() => {
+                              setWhichAccordionOpen("")
+                              resetNewSubtaskState()
+                            }}
+                          >
+                            <IconX size={14} />
+                          </TodoAction>
                         </TodoActionsContainer>
                       </TodoContainer>
                     </TodoProvider>
-                  ))
-                ) : (
-                  <TodoProvider
-                    onCheckedChange={setIsNewSubtaskDone}
-                    checked={isNewSubtaskDone}
-                    initialLabelValue=""
-                    onLabelChange={newText =>
-                      handleCreateNewSubtask({
-                        taskId: task.id,
-                        isDone: !!isNewSubtaskDone,
-                        task: newText,
-                      })
-                    }
-                  >
-                    <TodoContainer>
-                      <TodoCheckbox />
-                      <TodoEditableLabel
-                        selectAutoFocus
-                        disableAction
-                        padding="v-small"
-                        textStyle="new"
-                      />
-                      <TodoActionsContainer>
-                        <TodoAction className="__neutral bg-background">
-                          <IconPlus size={14} />
-                        </TodoAction>
-                        <TodoAction
-                          onClick={() => {
-                            setWhichAccordionOpen("")
-                            resetNewSubtaskState()
-                          }}
-                        >
-                          <IconX size={14} />
-                        </TodoAction>
-                      </TodoActionsContainer>
-                    </TodoContainer>
-                  </TodoProvider>
-                )}
-                {task.subtasks.length > 0 && isAddingNewSubtask && (
-                  <TodoProvider
-                    onCheckedChange={setIsNewSubtaskDone}
-                    checked={isNewSubtaskDone}
-                    initialLabelValue=""
-                    onLabelChange={newText =>
-                      handleCreateNewSubtask({
-                        taskId: task.id,
-                        isDone: !!isNewSubtaskDone,
-                        task: newText,
-                      })
-                    }
-                  >
-                    <TodoContainer>
-                      <TodoCheckbox />
-                      <TodoEditableLabel
-                        selectAutoFocus
-                        disableAction
-                        padding="v-small"
-                        textStyle="new"
-                      />
-                      <TodoActionsContainer>
-                        <TodoAction className="__neutral bg-background">
-                          <IconPlus size={14} />
-                        </TodoAction>
-                        <TodoAction
-                          onClick={() => {
-                            const hasNoSubtask = task.subtasks.length === 0
-                            if (hasNoSubtask) setWhichAccordionOpen("")
-                            resetNewSubtaskState()
-                          }}
-                        >
-                          <IconX size={14} />
-                        </TodoAction>
-                      </TodoActionsContainer>
-                    </TodoContainer>
-                  </TodoProvider>
-                )}
+                  )}
+                  {task.subtasks.length > 0 && isAddingNewSubtask && (
+                    <TodoProvider
+                      onCheckedChange={setIsNewSubtaskDone}
+                      checked={isNewSubtaskDone}
+                      initialLabelValue=""
+                      onLabelChange={newText =>
+                        handleCreateNewSubtask({
+                          taskId: task.id,
+                          isDone: !!isNewSubtaskDone,
+                          task: newText,
+                        })
+                      }
+                    >
+                      <TodoContainer>
+                        <TodoCheckbox />
+                        <TodoEditableLabel
+                          selectAutoFocus
+                          disableAction
+                          padding="v-small"
+                          textStyle="new"
+                        />
+                        <TodoActionsContainer>
+                          <TodoAction className="__neutral bg-background">
+                            <IconPlus size={14} />
+                          </TodoAction>
+                          <TodoAction
+                            onClick={() => {
+                              const hasNoSubtask = task.subtasks.length === 0
+                              if (hasNoSubtask) setWhichAccordionOpen("")
+                              resetNewSubtaskState()
+                            }}
+                          >
+                            <IconX size={14} />
+                          </TodoAction>
+                        </TodoActionsContainer>
+                      </TodoContainer>
+                    </TodoProvider>
+                  )}
+                </div>
+                <Button
+                  data-disabled={isAddingNewSubtask}
+                  onClick={() => setIsAddingNewSubtask(true)}
+                  className="__neutral disabled:opacity-50 disabled:cursor-not-allowed ml-2 h-5 text-xs w-fit pr-4 pl-2"
+                  disabled={isAddingNewSubtask}
+                >
+                  <IconPlus
+                    size={10}
+                    className="text-color-strong"
+                  />
+                  <span>New task</span>
+                </Button>
               </div>
-              <Button
-                data-disabled={isAddingNewSubtask}
-                onClick={() => setIsAddingNewSubtask(true)}
-                className="__neutral disabled:opacity-50 disabled:cursor-not-allowed ml-2 h-5 text-xs w-fit pr-4 pl-2"
-                disabled={isAddingNewSubtask}
-              >
-                <IconPlus
-                  size={10}
-                  className="text-color-strong"
-                />
-                <span>New task</span>
-              </Button>
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-    </PadContainer>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </PadContainer>
+    </div>
   )
 })
 
@@ -569,7 +579,10 @@ export const ToDoSkeleton = React.forwardRef<React.ElementRef<"div">, ToDoSkelet
     return (
       <PadContainer
         {...props}
-        className={cn("__first justify-between animate-pulse px-4", props.className)}
+        className={cn(
+          "__first justify-between animate-pulse px-4 rounded-none xs:rounded-[0.625rem]",
+          props.className
+        )}
         ref={ref}
       >
         <div className="flex items-center gap-2 flex-1">

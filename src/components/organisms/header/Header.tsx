@@ -1,26 +1,24 @@
-import React from "react"
-import { cn } from "@/lib/utils"
-import st from "./Header.module.css"
-import { PopoverThemeSwitcher } from "@/components/theme-switcher/PopoverThemeSwitcher"
-import { Button } from "@/components/ui/button"
+import { CenteredContainer, SlightContainer } from "@/components/container"
 import { IconMoon, IconSignout, IconSun } from "@/components/icons"
-import { UserButton, useAuth, useClerk, useUser } from "@clerk/nextjs"
 import { IconList } from "@/components/icons/IconList"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Sidebar } from "@/components/organisms"
-import { SlightContainer, CenteredContainer } from "@/components/container"
-import Link from "next/link"
+import { PopoverThemeSwitcher } from "@/components/theme-switcher/PopoverThemeSwitcher"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
-  DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useRouter } from "next/router"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { cn } from "@/lib/utils"
+import { useClerk } from "@clerk/nextjs"
 import { User } from "@clerk/nextjs/server"
+import Link from "next/link"
+import { useRouter } from "next/router"
+import React from "react"
+import st from "./Header.module.css"
 
 export type HeaderProps = React.ComponentPropsWithoutRef<"header"> & {
   user?: User | null | undefined
@@ -35,7 +33,7 @@ export const Header = React.forwardRef<React.ElementRef<"header">, HeaderProps>(
     return (
       <header
         {...props}
-        className={cn("border-b bg-background sticky top-0 z-10", props.className)}
+        className={cn("border-b bg-background sticky top-0 z-30", props.className)}
         ref={ref}
       >
         <CenteredContainer className="h-16 flex justify-between gap-4">

@@ -50,7 +50,7 @@ export default function Home({ user }: ServerSideProps) {
   const tasksCache: TaskSession[] | undefined = queryClient.getQueryData(["tasksIds", userId])
   const [isMounted, setIsMounted] = useState(false)
   const { toast } = useToast()
-  const { sortCurrent } = useTasksListState()
+  const { sortCurrent, resetSort, setSortState, setLastSort } = useTasksListState()
 
   const { data: tasksResponse } = useQuery<TaskSession[]>({
     queryKey: ["tasksIds", userId],
@@ -151,8 +151,6 @@ export default function Home({ user }: ServerSideProps) {
       return response
     },
     onError: () => {
-      setIsLoadingNewTask(false)
-
       toast({
         variant: "destructive",
         title: "Failed to create task",
@@ -165,7 +163,12 @@ export default function Home({ user }: ServerSideProps) {
       })
     },
     onSuccess: () => {
+      resetSort()
+      setSortState(["date", "createdAt-asc"])
       queryClient.invalidateQueries(["tasksIds", userId])
+    },
+    onSettled: () => {
+      setIsLoadingNewTask(false)
     },
     retry: 3,
   })
@@ -187,7 +190,7 @@ export default function Home({ user }: ServerSideProps) {
       <Header user={user} />
       <div className="absolute left-1/2 -translate-x-1/2 -translate-y-[1px] h-[1px] bg-gradient-to-r from-transparent to-transparent via-color/40 max-w-xl w-full" />
       <div className={cn(st.sponge, "dark:visible invisible")} />
-      <CenteredContainer className="flex min-h-[calc(100dvh_-_65px)]">
+      <CenteredContainer className="flex min-h-[calc(100dvh_-_65px)] p-0 xs:px-4">
         {isMounted && floatingNewTaskVisible
           ? createPortal(
               <div className="absolute bottom-12 right-12 pointer-events-auto">
@@ -214,7 +217,7 @@ export default function Home({ user }: ServerSideProps) {
               <span>New task</span>
             </Button>
           </ModalCreateNewTask>
-          <PadWrapper className="__two">
+          <PadWrapper className="__two py-1 xs:p-1 gap-1">
             <SortingBar />
             <TasksList
               tasks={tasks ?? null}

@@ -1,36 +1,27 @@
-import React, { useId, useState } from "react"
-import { cn } from "@/lib/utils"
-import {
-  DialogContent,
-  DialogTitle,
-  DialogDescription,
-  Dialog,
-  DialogHeader,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import {
   Form,
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
 } from "@/components/ui/form"
-import { SubmitHandler, useForm } from "react-hook-form"
+import { Input } from "@/components/ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { CreateNewTaskForm, createNewTaskFormSchema } from "@/form/create-new-task/schema"
+import { cn } from "@/lib/utils"
+import { useAuth } from "@clerk/nextjs"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
+import { UseMutateFunction } from "@tanstack/react-query"
 import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
-import { Calendar } from "@/components/ui/calendar"
-import { Checkbox } from "@/components/ui/checkbox"
-import { useUserInfo } from "@/contexts/user-info/userInfoContext"
-import { useAuth } from "@clerk/nextjs"
-import { UseMutateFunction, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/router"
+import React, { useState } from "react"
+import { SubmitHandler, useForm } from "react-hook-form"
 
 export type ModalCreateNewTaskProps = React.ComponentPropsWithoutRef<"div"> & {
   children?: React.ReactNode
@@ -92,7 +83,7 @@ export const ModalCreateNewTask = React.forwardRef<
               name="task"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Task name</FormLabel>
+                  <FormLabel className="text-heading">Task name</FormLabel>
                   <FormControl>
                     <Input
                       className="__two"

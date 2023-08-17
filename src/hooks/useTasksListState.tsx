@@ -5,6 +5,11 @@ export interface ITasksListStateContext {
   sort: Sort
   sortCurrent: SortCurrent
   lastSort: SortText | SortDate | null
+  resetSort: () => void
+  setSortState<T extends SortMethods>(
+    props: [sortingMethod: T, sortingValue: Sort[T][number]]
+  ): void
+  setLastSort: React.Dispatch<React.SetStateAction<SortAllKeys>>
 }
 
 export const TasksListStateContext = createContext({} as ITasksListStateContext)
@@ -38,6 +43,26 @@ export function TasksListStateProvider(props: { children: React.ReactNode }) {
     [sort, setSort]
   )
 
+  function setSortState<T extends SortMethods>(
+    props: [sortingMethod: T, sortingValue: Sort[T][number]]
+  ) {
+    const [sortingMethod, sortingValue] = props
+    setLastSort(sortingValue)
+    let newSortState = { ...sort }
+    do {
+      const [firstItem, ...rest] = newSortState[sortingMethod]
+      newSortState[sortingMethod] = [...rest, firstItem] as any
+    } while (newSortState[sortingMethod][0] !== sortingValue)
+    setSort(newSortState)
+  }
+
+  const resetSort = useCallback(
+    function () {
+      setSort(sortValues)
+    },
+    [setSort, sortValues]
+  )
+
   const sortCurrent: SortCurrent = useMemo(
     function () {
       return {
@@ -55,6 +80,9 @@ export function TasksListStateProvider(props: { children: React.ReactNode }) {
         toggleSort,
         sortCurrent,
         lastSort,
+        resetSort,
+        setSortState,
+        setLastSort,
       }}
     >
       {props.children}
