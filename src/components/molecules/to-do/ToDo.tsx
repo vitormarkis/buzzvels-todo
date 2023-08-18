@@ -1,3 +1,12 @@
+import { nanoid } from "nanoid"
+import React, { useState } from "react"
+
+import { useAuth } from "@clerk/nextjs"
+import { CheckedState } from "@radix-ui/react-checkbox"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+
+import { cn } from "@/lib/utils"
+
 import {
   TodoAction,
   TodoActionsContainer,
@@ -11,52 +20,34 @@ import { EditableLabel } from "@/components/editable-label/EditableLabel"
 import { IconPlus, IconX } from "@/components/icons"
 import { IconListTree } from "@/components/icons/IconListTree"
 import { IconThreeDotsVertical } from "@/components/icons/IconThreeDotsVertical"
-import { IconTrash } from "@/components/icons/IconTrash"
+import { SubtaskDeleteAlertDialog } from "@/components/molecules/alert-dialog-subtask-delete/SubtaskDeleteAlertDialog"
+import { ToDoOptionsDropdown } from "@/components/molecules/dropdown-to-do-options/ToDoOptionsDropdown"
 import { Accordion, AccordionContent, AccordionItem } from "@/components/ui/accordion"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { useToast } from "@/components/ui/use-toast"
-import { useUserInfo } from "@/contexts/user-info/userInfoContext"
+
 import { createQueryCache } from "@/factories/createQueryCache"
+
+import { useUserInfo } from "@/contexts/user-info/userInfoContext"
 import { SubtaskSession, TaskSession } from "@/fetchs/tasks/schema"
-import { cn } from "@/lib/utils"
 import {
   MutateChangeSubtaskTextInput,
   mutateChangeSubtaskTextSchema,
 } from "@/schemas/subtask/change"
-import { MutateCreateNewSubtaskInput, mutateCreateNewSubtaskSchema } from "@/schemas/subtask/create"
-import {
-  MutateDeleteSubtaskInput,
-  SubtaskRequestBodySchemaInput,
-  mutateDeleteSubtaskSchema,
-} from "@/schemas/subtask/delete"
 import { MutateChangeTaskTextInput, mutateChangeTaskTextSchema } from "@/schemas/task/change"
-import { changeSubtaskTextMutationFunction } from "@/services/react-query/mutations/changeSubtaskTextMutationFunction"
-import { changeTaskTextMutationFunction } from "@/services/react-query/mutations/changeTaskTextMutationFunction"
-import { deleteTaskMutationFunction } from "@/services/react-query/mutations/deleteTaskMutationFunction"
-import { toggleSubtaskMutationFunction } from "@/services/react-query/mutations/toggleSubtaskMutationFunction"
-import { toggleTaskMutationFunction } from "@/services/react-query/mutations/toggleTodoMutationFunction"
-import { useAuth } from "@clerk/nextjs"
-import { CheckedState } from "@radix-ui/react-checkbox"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { nanoid } from "nanoid"
-import React, { useState } from "react"
+import {
+  changeSubtaskTextMutationFunction,
+  changeTaskTextMutationFunction,
+  deleteTaskMutationFunction,
+  toggleSubtaskMutationFunction,
+  toggleTaskMutationFunction,
+} from "@/services/react-query/mutations"
+import {
+  MutateCreateNewSubtaskInput,
+  createNewSubtaskMutationFunction,
+  mutateCreateNewSubtaskSchema,
+} from "@/services/react-query/mutations/createNewSubtaskMutationFunction"
 
 export type MutateToggleTask = { taskId: string; isDone: boolean }
 export type MutateToggleSubtask = { subtask: SubtaskSession; isDone: CheckedState }
@@ -172,12 +163,7 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
   })
 
   const { mutate: createNewSubtaskMutate } = useMutation<{}, {}, MutateCreateNewSubtaskInput>({
-    mutationFn: async ({ isDone, task, taskId }) =>
-      fetch("/api/subtask", {
-        body: JSON.stringify({ isDone, task, taskId }),
-        headers,
-        method: "POST",
-      }),
+    mutationFn: props => createNewSubtaskMutationFunction(props, headers),
     onMutate: ({ taskId, task }) => {
       QueryCache.subtasks.add({
         id: nanoid(),
@@ -202,36 +188,6 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["tasksIds", userId])
-    },
-    retry: 3,
-  })
-
-  const { mutate: deleteSubtaskMutate } = useMutation<{}, {}, MutateDeleteSubtaskInput>({
-    mutationFn: ({ id }: SubtaskRequestBodySchemaInput) =>
-      fetch("/api/subtask", {
-        body: JSON.stringify({ id }),
-        headers,
-        method: "DELETE",
-      }),
-    onMutate: ({ id: subtaskId, taskId }) => {
-      QueryCache.subtasks.remove(subtaskId, taskId, {
-        onRemoveLastOne: () => {
-          setWhichAccordionOpen("")
-          resetNewSubtaskState()
-        },
-      })
-    },
-    onError: () => {
-      toast({
-        variant: "destructive",
-        title: "Failed to delete sub-task",
-        description: (
-          <>
-            Something went wrong on our server during the deletion of your sub-task,{" "}
-            <strong>please try again.</strong>
-          </>
-        ),
-      })
     },
     retry: 3,
   })
@@ -269,11 +225,6 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
     createNewSubtaskMutate({ isDone, task, taskId })
   }
 
-  const handleDeleteSubtask = (props: MutateDeleteSubtaskInput) => {
-    const { id, taskId } = mutateDeleteSubtaskSchema.parse(props)
-    deleteSubtaskMutate({ id, taskId })
-  }
-
   const setAccordion = (openingAccordion: string) => (currentOpenAccordion: string) =>
     currentOpenAccordion === openingAccordion ? "" : openingAccordion
 
@@ -299,19 +250,16 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
           "min-h-[3rem] py-0 px-4 justify-between relative overflow-hidden rounded-none xs:rounded-[0.625rem]",
           props.className
         )}
-        ref={ref}
-      >
+        ref={ref}>
         <Accordion
           type="single"
           collapsible
           className="flex-1"
           value={whichAccordionOpen}
-          onValueChange={setWhichAccordionOpen}
-        >
+          onValueChange={setWhichAccordionOpen}>
           <AccordionItem
             value="subtasks"
-            className="flex flex-col"
-          >
+            className="flex flex-col">
             <div className="flex gap-2">
               <div className="flex items-start gap-2 flex-1">
                 <Checkbox
@@ -340,65 +288,16 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                 <Button
                   data-nosubtasks={task.subtasks.length === 0}
                   className="h-8 w-8 p-0 data-[nosubtasks=true]:opacity-50 data-[nosubtasks=true]:hover:opacity-100 transition"
-                  onClick={handleToggleAccordion["subtasks"]}
-                >
+                  onClick={handleToggleAccordion["subtasks"]}>
                   <IconListTree />
                 </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger>
-                    <Button className="h-8 w-8 p-0">
-                      <IconThreeDotsVertical className="text-color-strong" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          className="h-9 px-2 py-1.5 cursor-default justify-start w-full font-normal rounded-sm"
-                        >
-                          <IconTrash
-                            size={16}
-                            style={{ color: "inherit" }}
-                          />
-                          <span>Delete</span>
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete To-do</AlertDialogTitle>
-                          <div className="flex flex-col gap-2">
-                            <p className="__two bg-background py-2 px-4 rounded-lg text-color">
-                              {task.task}
-                            </p>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete permanently this to-do?
-                            </AlertDialogDescription>
-                          </div>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel asChild>
-                            <Button variant="default">
-                              <span>Cancel</span>
-                            </Button>
-                          </AlertDialogCancel>
-                          <AlertDialogAction asChild>
-                            <Button
-                              onClick={() => handleDeleteTask({ taskId: task.id })}
-                              className="__block"
-                            >
-                              <IconTrash
-                                size={16}
-                                style={{ color: "inherit" }}
-                              />
-                              <span>Confirm</span>
-                            </Button>
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <ToDoOptionsDropdown
+                  handleDeleteTask={handleDeleteTask}
+                  task={task}>
+                  <Button className="h-8 w-8 p-0">
+                    <IconThreeDotsVertical className="text-color-strong" />
+                  </Button>
+                </ToDoOptionsDropdown>
               </div>
             </div>
             <AccordionContent className="flex data-[state=open]:pb-4 w-full">
@@ -416,8 +315,7 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                         initialLabelValue={subtask.task}
                         onLabelChange={newValue =>
                           handleChangeSubtaskText({ subtaskId: subtask.id, text: newValue })
-                        }
-                      >
+                        }>
                         <TodoContainer>
                           <TodoCheckbox />
                           <TodoEditableLabel
@@ -426,51 +324,14 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                             padding="v-small"
                           />
                           <TodoActionsContainer>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <TodoAction>
-                                  <IconX size={14} />
-                                </TodoAction>
-                              </AlertDialogTrigger>
-
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Sub-task</AlertDialogTitle>
-                                  <div className="flex flex-col gap-2">
-                                    <p className="__two bg-background py-2 px-4 rounded-lg text-color-strong">
-                                      {subtask.task}
-                                    </p>
-                                    <AlertDialogDescription>
-                                      Are you sure you want to delete permanently this sub-task?
-                                    </AlertDialogDescription>
-                                  </div>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel asChild>
-                                    <Button variant="default">
-                                      <span>Cancel</span>
-                                    </Button>
-                                  </AlertDialogCancel>
-                                  <AlertDialogAction asChild>
-                                    <Button
-                                      onClick={() =>
-                                        handleDeleteSubtask({
-                                          id: subtask.id,
-                                          taskId: task.id,
-                                        })
-                                      }
-                                      className="__block"
-                                    >
-                                      <IconTrash
-                                        size={16}
-                                        style={{ color: "inherit" }}
-                                      />
-                                      <span>Confirm</span>
-                                    </Button>
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
+                            <SubtaskDeleteAlertDialog
+                              subtask={subtask}
+                              resetNewSubtaskState={resetNewSubtaskState}
+                              setWhichAccordionOpen={setWhichAccordionOpen}>
+                              <TodoAction>
+                                <IconX size={14} />
+                              </TodoAction>
+                            </SubtaskDeleteAlertDialog>
                           </TodoActionsContainer>
                         </TodoContainer>
                       </TodoProvider>
@@ -486,8 +347,7 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                           isDone: !!isNewSubtaskDone,
                           task: newText,
                         })
-                      }
-                    >
+                      }>
                       <TodoContainer>
                         <TodoCheckbox />
                         <TodoEditableLabel
@@ -504,8 +364,7 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                             onClick={() => {
                               setWhichAccordionOpen("")
                               resetNewSubtaskState()
-                            }}
-                          >
+                            }}>
                             <IconX size={14} />
                           </TodoAction>
                         </TodoActionsContainer>
@@ -523,8 +382,7 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                           isDone: !!isNewSubtaskDone,
                           task: newText,
                         })
-                      }
-                    >
+                      }>
                       <TodoContainer>
                         <TodoCheckbox />
                         <TodoEditableLabel
@@ -542,8 +400,7 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                               const hasNoSubtask = task.subtasks.length === 0
                               if (hasNoSubtask) setWhichAccordionOpen("")
                               resetNewSubtaskState()
-                            }}
-                          >
+                            }}>
                             <IconX size={14} />
                           </TodoAction>
                         </TodoActionsContainer>
@@ -555,8 +412,7 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                   data-disabled={isAddingNewSubtask}
                   onClick={() => setIsAddingNewSubtask(true)}
                   className="__neutral disabled:opacity-50 disabled:cursor-not-allowed ml-2 h-5 text-xs w-fit pr-4 pl-2"
-                  disabled={isAddingNewSubtask}
-                >
+                  disabled={isAddingNewSubtask}>
                   <IconPlus
                     size={10}
                     className="text-color-strong"
@@ -583,8 +439,7 @@ export const ToDoSkeleton = React.forwardRef<React.ElementRef<"div">, ToDoSkelet
           "__first justify-between animate-pulse px-4 rounded-none xs:rounded-[0.625rem]",
           props.className
         )}
-        ref={ref}
-      >
+        ref={ref}>
         <div className="flex items-center gap-2 flex-1">
           <Checkbox checked={false} />
           <div className="w-full px-1.5 py-[1.625rem] xs:py-3.5">

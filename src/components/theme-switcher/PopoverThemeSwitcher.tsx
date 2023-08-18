@@ -1,12 +1,14 @@
+import { useTheme } from "next-themes"
 import React from "react"
+
 import { cn } from "@/lib/utils"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu"
-import { useTheme } from "next-themes"
 
 export type PopoverThemeSwitcherProps = React.ComponentPropsWithoutRef<"div"> & {
   children: React.ReactNode
@@ -29,8 +31,7 @@ export const PopoverThemeSwitcher = React.forwardRef<
       <DropdownMenuContent
         {...props}
         className={cn("", props.className)}
-        ref={ref}
-      >
+        ref={ref}>
         <DropdownMenuItem onClick={toggleTheme("light")}>Light</DropdownMenuItem>
         <DropdownMenuItem onClick={toggleTheme("dark")}>Dark</DropdownMenuItem>
       </DropdownMenuContent>

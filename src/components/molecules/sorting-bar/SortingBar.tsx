@@ -1,6 +1,8 @@
-import { SortDate, SortText, useTasksListState } from "@/hooks/useTasksListState"
-import { cn } from "@/lib/utils"
 import React from "react"
+
+import { cn } from "@/lib/utils"
+
+import { SortDate, SortText, useTasksListState } from "@/hooks/useTasksListState"
 
 export type SortingBarProps = React.ComponentPropsWithoutRef<"div"> & {}
 
@@ -30,8 +32,7 @@ export const SortingBar = React.forwardRef<React.ElementRef<"div">, SortingBarPr
       <div
         {...props}
         className={cn("flex px-4", props.className)}
-        ref={ref}
-      >
+        ref={ref}>
         <div className="grow py-1.5">
           <h2 className="text-lg font-medium text-heading">Your To-do's</h2>
         </div>
@@ -47,8 +48,7 @@ export const SortingBar = React.forwardRef<React.ElementRef<"div">, SortingBarPr
                 "__first text-xs bg-transparent h-6 px-2 rounded-lg text-color-soft transition",
                 "data-[active=true]:bg-background hover:text-color-strong"
               )}
-              onClick={() => toggleSort("date")}
-            >
+              onClick={() => toggleSort("date")}>
               <span>Date</span>
             </button>
             <button
@@ -58,8 +58,7 @@ export const SortingBar = React.forwardRef<React.ElementRef<"div">, SortingBarPr
                 "__first text-xs bg-transparent h-6 px-2 rounded-lg text-color-soft transition",
                 "data-[active=true]:bg-background hover:text-color-strong"
               )}
-              onClick={() => toggleSort("text")}
-            >
+              onClick={() => toggleSort("text")}>
               <span>Text</span>
             </button>
           </div>

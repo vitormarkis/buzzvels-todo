@@ -1,5 +1,6 @@
-import { TaskSession } from "@/fetchs/tasks/schema"
 import { SortAllKeysValid, SortCurrent, useTasksListState } from "@/hooks/useTasksListState"
+
+import { TaskSession } from "@/fetchs/tasks/schema"
 
 type TasksOptions = {
   sortCurrent: SortCurrent

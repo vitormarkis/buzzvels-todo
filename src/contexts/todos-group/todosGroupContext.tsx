@@ -42,8 +42,7 @@ export function TodosGroupProvider(props: { children: React.ReactNode }) {
         setTodoGroups,
         usingTodoGroup,
         setUsingTodoGroup,
-      }}
-    >
+      }}>
       {props.children}
     </TodosGroupContext.Provider>
   )

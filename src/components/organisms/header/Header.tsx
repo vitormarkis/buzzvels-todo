@@ -1,3 +1,12 @@
+import Link from "next/link"
+import { useRouter } from "next/router"
+import React from "react"
+
+import { useClerk } from "@clerk/nextjs"
+import { User } from "@clerk/nextjs/server"
+
+import { cn } from "@/lib/utils"
+
 import { CenteredContainer, SlightContainer } from "@/components/container"
 import { IconMoon, IconSignout, IconSun } from "@/components/icons"
 import { IconList } from "@/components/icons/IconList"
@@ -12,12 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { cn } from "@/lib/utils"
-import { useClerk } from "@clerk/nextjs"
-import { User } from "@clerk/nextjs/server"
-import Link from "next/link"
-import { useRouter } from "next/router"
-import React from "react"
+
 import st from "./Header.module.css"
 
 export type HeaderProps = React.ComponentPropsWithoutRef<"header"> & {
@@ -34,8 +38,7 @@ export const Header = React.forwardRef<React.ElementRef<"header">, HeaderProps>(
       <header
         {...props}
         className={cn("border-b bg-background sticky top-0 z-30", props.className)}
-        ref={ref}
-      >
+        ref={ref}>
         <CenteredContainer className="h-16 flex justify-between gap-4">
           <div className="flex-1 md:hidden flex items-center">
             <Sheet>
@@ -46,8 +49,7 @@ export const Header = React.forwardRef<React.ElementRef<"header">, HeaderProps>(
               </SheetTrigger>
               <SheetContent
                 side="left"
-                className="space-y-2"
-              >
+                className="space-y-2">
                 <div>
                   <h3 className="mb-0.5 text-heading text-xl font-medium">Navigation</h3>
                   <p className="text-heading-sub text-sm">The group of to-do's you have.</p>
@@ -61,8 +63,7 @@ export const Header = React.forwardRef<React.ElementRef<"header">, HeaderProps>(
               className={cn(
                 st.heading,
                 "font-poppins text-center text-xl xs:text-2xl tracking-wider font-medium"
-              )}
-            >
+              )}>
               Buzzvel&#8217;s Todo
             </span>
           </div>
@@ -81,8 +82,8 @@ export const Header = React.forwardRef<React.ElementRef<"header">, HeaderProps>(
                       <AvatarImage src={user.imageUrl} />
                       <AvatarFallback>{`
                         ${user.firstName?.charAt(0).toUpperCase()}${user.lastName
-                        ?.charAt(0)
-                        .toUpperCase()}
+                          ?.charAt(0)
+                          .toUpperCase()}
                         `}</AvatarFallback>
                     </Avatar>
                   </DropdownMenuTrigger>
@@ -93,8 +94,7 @@ export const Header = React.forwardRef<React.ElementRef<"header">, HeaderProps>(
                       onClick={() => {
                         router.push("/sign-in")
                         void signOut()
-                      }}
-                    >
+                      }}>
                       <IconSignout
                         size={16}
                         style={{ color: "inherit" }}
@@ -106,8 +106,7 @@ export const Header = React.forwardRef<React.ElementRef<"header">, HeaderProps>(
               ) : (
                 <Button
                   asChild
-                  className="__action rounded-full whitespace-nowrap"
-                >
+                  className="__action rounded-full whitespace-nowrap">
                   <Link href="/sign-in">Sign in</Link>
                 </Button>
               )}

@@ -1,7 +1,9 @@
+import { NextApiRequest, NextApiResponse } from "next"
+
 import { redis } from "@/lib/redis"
+
 import { MutateChangeTaskTextInput, mutateChangeTaskTextSchema } from "@/schemas/task/change"
 import { getAuth } from "@/utils/getAuth"
-import { NextApiRequest, NextApiResponse } from "next"
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "DELETE") {

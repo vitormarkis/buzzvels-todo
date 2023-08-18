@@ -1,3 +1,13 @@
+import { GetServerSideProps } from "next"
+import { useEffect, useState } from "react"
+import { createPortal } from "react-dom"
+
+import { useAuth } from "@clerk/nextjs"
+import { User, buildClerkProps, clerkClient, getAuth } from "@clerk/nextjs/server"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+
+import { cn } from "@/lib/utils"
+
 import { CenteredContainer } from "@/components/container/centered-container/CenteredContainer"
 import { PadWrapper } from "@/components/container/pad-container/PadWrapper"
 import { IconPlus } from "@/components/icons"
@@ -8,22 +18,18 @@ import { TasksList } from "@/components/molecules/tasks-list/TasksList"
 import { Header, Sidebar } from "@/components/organisms"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
-import { useUserInfo } from "@/contexts/user-info/userInfoContext"
+
 import { useTasks } from "@/factories/createTasks"
+import { useScrollPosition } from "@/hooks/useScrollPosition"
+import { useTasksListState } from "@/hooks/useTasksListState"
+
+import { useUserInfo } from "@/contexts/user-info/userInfoContext"
 import { getTasks } from "@/fetchs/tasks/get"
 import { TaskSession } from "@/fetchs/tasks/schema"
 import { CreateNewTaskForm } from "@/form/create-new-task/schema"
-import { useScrollPosition } from "@/hooks/useScrollPosition"
-import { useTasksListState } from "@/hooks/useTasksListState"
-import { cn } from "@/lib/utils"
-import { createNewTodoMutationFunction } from "@/services/react-query/mutations/createNewTodoMutationFunction"
+import { createNewTodoMutationFunction } from "@/services/react-query/mutations"
 import { ClerkBuilder } from "@/types/clerkBuilder"
-import { useAuth } from "@clerk/nextjs"
-import { User, buildClerkProps, clerkClient, getAuth } from "@clerk/nextjs/server"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { GetServerSideProps } from "next"
-import { useEffect, useState } from "react"
-import { createPortal } from "react-dom"
+
 import st from "./page.module.css"
 
 type ServerSideProps = {
@@ -144,8 +150,7 @@ export default function Home({ user }: ServerSideProps) {
           <ModalCreateNewTask mutate={createNewTodoMutate}>
             <Button
               size="xl"
-              className="__neutral mx-auto"
-            >
+              className="__neutral mx-auto">
               <IconPlus size={16} />
               <span>New task</span>
             </Button>

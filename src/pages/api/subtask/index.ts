@@ -1,12 +1,11 @@
-import { redis } from "@/lib/redis"
-import { NextApiRequest, NextApiResponse } from "next"
 import { nanoid } from "nanoid"
-import {
-  SubtaskApiBodySchemaInput,
-  mutateCreateNewSubtaskSchema,
-  subtaskApiBodySchema,
-} from "@/schemas/subtask/create"
-import { mutateDeleteSubtaskSchema, subtaskRequestBodySchema } from "@/schemas/subtask/delete"
+import { NextApiRequest, NextApiResponse } from "next"
+
+import { redis } from "@/lib/redis"
+
+import { SubtaskApiBodySchemaInput, subtaskSchema } from "@/schemas/subtask/create"
+import { subtaskRequestBodySchema } from "@/schemas/subtask/delete"
+import { mutateCreateNewSubtaskSchema } from "@/services/react-query/mutations"
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
@@ -22,7 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const subtaskId = `subtask_${nanoid()}`
 
-    const subtask = subtaskApiBodySchema.parse({
+    const subtask = subtaskSchema.parse({
       createdAt: new Date().getTime(),
       id: subtaskId,
       isDone,

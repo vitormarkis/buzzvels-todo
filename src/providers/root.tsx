@@ -1,9 +1,12 @@
-import { TodosGroupProvider } from "@/contexts/todos-group/todosGroupContext"
 import { ThemeProvider } from "next-themes"
 import React from "react"
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { UserInfoProvider } from "@/contexts/user-info/userInfoContext"
+
 import { TasksListStateProvider } from "@/hooks/useTasksListState"
+
+import { TodosGroupProvider } from "@/contexts/todos-group/todosGroupContext"
+import { UserInfoProvider } from "@/contexts/user-info/userInfoContext"
 
 const queryClient = new QueryClient()
 

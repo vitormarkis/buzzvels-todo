@@ -1,9 +1,12 @@
+import React from "react"
+
+import { cn } from "@/lib/utils"
+
 import { PadWrapper } from "@/components/container/pad-container/PadWrapper"
 import { IconFolderOpen } from "@/components/icons/IconFolderOpen"
 import { ToDo, ToDoSkeleton } from "@/components/molecules/to-do/ToDo"
+
 import { TaskSession } from "@/fetchs/tasks/schema"
-import { cn } from "@/lib/utils"
-import React from "react"
 
 export type TasksListProps = React.ComponentPropsWithoutRef<"div"> & {
   isLoadingNewTask: boolean
@@ -16,8 +19,7 @@ export const TasksList = React.forwardRef<React.ElementRef<"div">, TasksListProp
       <PadWrapper
         {...props}
         className={cn("gap-1", props.className)}
-        ref={ref}
-      >
+        ref={ref}>
         {isLoadingNewTask && <ToDoSkeleton />}
         {tasks?.length && tasks.length > 0 ? (
           tasks.map(task => (

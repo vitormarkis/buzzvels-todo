@@ -1,7 +1,11 @@
 import React from "react"
-import { cn } from "@/lib/utils"
-import { IconFolderOpen } from "@/components/icons/IconFolderOpen"
+
 import { Slot } from "@radix-ui/react-slot"
+
+import { cn } from "@/lib/utils"
+
+import { IconFolderOpen } from "@/components/icons/IconFolderOpen"
+
 import { IconProps } from "@/types/icon-props"
 
 export type NoTasksPlaceholderProps = React.ComponentPropsWithoutRef<"div"> & {
@@ -16,8 +20,7 @@ export const NoTasksPlaceholder = React.forwardRef<
     <div
       {...props}
       className={cn("py-4 flex flex-col gap-2 items-center", props.className)}
-      ref={ref}
-    >
+      ref={ref}>
       <NoTasksPlaceholderText>{children ?? "There is no tasks yet."}</NoTasksPlaceholderText>
       <NoTasksPlaceholderIcon />
     </div>
@@ -38,8 +41,7 @@ export const NoTasksPlaceholderText = React.forwardRef<
     <h3
       {...props}
       className={cn("text-center text-color-soft text-xl", props.className)}
-      ref={ref}
-    >
+      ref={ref}>
       {children}
     </h3>
   )

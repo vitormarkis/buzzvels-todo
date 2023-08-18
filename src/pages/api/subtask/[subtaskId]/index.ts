@@ -1,18 +1,12 @@
-import { redis } from "@/lib/redis"
 import { NextApiRequest, NextApiResponse } from "next"
-import { nanoid } from "nanoid"
-import {
-  SubtaskApiBodySchemaInput,
-  mutateCreateNewSubtaskSchema,
-  subtaskApiBodySchema,
-} from "@/schemas/subtask/create"
-import { mutateDeleteSubtaskSchema, subtaskRequestBodySchema } from "@/schemas/subtask/delete"
-import { getAuth } from "@/utils/getAuth"
+
+import { redis } from "@/lib/redis"
+
 import {
   MutateChangeSubtaskTextInput,
   mutateChangeSubtaskTextSchema,
 } from "@/schemas/subtask/change"
-import { wasOperationSuccess } from "@/utils/wasOperationSuccess"
+import { getAuth } from "@/utils/getAuth"
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "PATCH") {

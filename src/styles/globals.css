@@ -3,7 +3,16 @@
 @tailwind utilities;
 
 .bg-special-slate {
-  background: linear-gradient(45deg, rgba(var(--background) / 1), rgba(var(--background-shadow) / 1), rgba(var(--background) / 1)) padding-box, linear-gradient(309deg, rgba(var(--color-strong) / 0.1), rgba(var(--color-strong) / 0.2)) border-box;
+  background:
+    linear-gradient(
+        45deg,
+        rgba(var(--background) / 1),
+        rgba(var(--background-shadow) / 1),
+        rgba(var(--background) / 1)
+      )
+      padding-box,
+    linear-gradient(309deg, rgba(var(--color-strong) / 0.1), rgba(var(--color-strong) / 0.2))
+      border-box;
 }
 
 @layer base {
@@ -301,11 +310,10 @@
   }
 
   * {
-    @apply border-ring
+    @apply border-ring;
   }
 }
 
-
 .center-element {
-  @apply absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
+  @apply absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2;
 }

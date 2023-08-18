@@ -1,7 +1,10 @@
-import { cn } from "@/lib/utils"
-import { handleKeyPressed } from "@/utils/units/handleKeyUp"
 import { VariantProps, cva } from "class-variance-authority"
 import React, { ChangeEvent, Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
+
+import { cn } from "@/lib/utils"
+
+import { handleKeyPressed } from "@/utils/units/handleKeyUp"
+
 import st from "./EditableLabel.module.css"
 
 const editableTextVariables = cva("px-1.5", {
@@ -158,8 +161,7 @@ export const EditableLabel = React.forwardRef<React.ElementRef<"div">, EditableL
         tabIndex={tabIndex}
         onClick={wrapperHandlers.handleOnClick}
         onDoubleClick={wrapperHandlers.onDoubleClick}
-        onKeyUp={wrapperHandlers.onKeyUp}
-      >
+        onKeyUp={wrapperHandlers.onKeyUp}>
         {/* {true && ( */}
         {isEditing && (
           <textarea
@@ -194,8 +196,7 @@ export const EditableLabel = React.forwardRef<React.ElementRef<"div">, EditableL
               ),
             }),
             "px-0"
-          )}
-        >
+          )}>
           {text.length === 0 ? placeholder : text}
         </span>
       </div>

@@ -1,4 +1,5 @@
 import React from "react"
+
 import { cn } from "@/lib/utils"
 
 export type PadContainerProps = React.ComponentPropsWithoutRef<"div"> & {
@@ -14,8 +15,7 @@ export const PadContainer = React.forwardRef<React.ElementRef<"div">, PadContain
           "flex items-center gap-3 px-6 rounded-[0.625rem] bg-background text-color-strong",
           props.className
         )}
-        ref={ref}
-      >
+        ref={ref}>
         {children}
       </div>
     )

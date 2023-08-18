@@ -1,5 +1,6 @@
-import { setPrefixDoubleDashes } from "@/utils/units/setPrefixDoubleDashes"
 import { CSSProperties } from "react"
+
+import { setPrefixDoubleDashes } from "@/utils/units/setPrefixDoubleDashes"
 
 type UpcomingCSSVariables = [cssVariable: string, value: string | number, sufix?: string]
 

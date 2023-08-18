@@ -1,6 +1,8 @@
-import { redis } from "@/lib/redis"
-import { getAuth } from "@/utils/getAuth"
 import { NextApiRequest, NextApiResponse } from "next"
+
+import { redis } from "@/lib/redis"
+
+import { getAuth } from "@/utils/getAuth"
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "PATCH") {

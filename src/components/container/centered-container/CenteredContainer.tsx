@@ -1,4 +1,5 @@
 import React from "react"
+
 import { cn } from "@/lib/utils"
 
 export type CenteredContainerProps = React.ComponentPropsWithoutRef<"div"> & {
@@ -11,8 +12,7 @@ export const CenteredContainer = React.forwardRef<React.ElementRef<"div">, Cente
       <div
         {...props}
         className={cn("max-w-7xl mx-auto px-4 md:px-8", props.className)}
-        ref={ref}
-      >
+        ref={ref}>
         {children}
       </div>
     )

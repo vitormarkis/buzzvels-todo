@@ -1,7 +1,8 @@
-import { subtaskApiBodySchema } from "@/schemas/subtask/create"
 import { z } from "zod"
 
-export const subtaskRequestBodySchema = subtaskApiBodySchema
+import { subtaskSchema } from "@/schemas/subtask/create"
+
+export const subtaskRequestBodySchema = subtaskSchema
   .pick({
     id: true,
   })
@@ -10,7 +11,7 @@ export const subtaskRequestBodySchema = subtaskApiBodySchema
 export type SubtaskRequestBodySchemaInput = z.input<typeof subtaskRequestBodySchema>
 export type SubtaskRequestBodySchema = z.output<typeof subtaskRequestBodySchema>
 
-export const mutateDeleteSubtaskSchema = subtaskApiBodySchema
+export const mutateDeleteSubtaskSchema = subtaskSchema
   .pick({
     taskId: true,
     id: true,

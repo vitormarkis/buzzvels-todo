@@ -1,6 +1,8 @@
 import React from "react"
-import { IconProps } from "@/types/icon-props"
+
 import { createIconAttributes } from "@/components/icons/createIconAttributes"
+
+import { IconProps } from "@/types/icon-props"
 
 export const IconListBullets = React.forwardRef<React.ElementRef<"svg">, IconProps>(
   function IconListBulletsComponent(props, ref) {
@@ -11,8 +13,7 @@ export const IconListBullets = React.forwardRef<React.ElementRef<"svg">, IconPro
         {...attributes}
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 256 256"
-        ref={ref}
-      >
+        ref={ref}>
         <rect
           width="256"
           height="256"
