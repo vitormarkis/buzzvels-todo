@@ -6,16 +6,13 @@ import { redis } from "@/lib/redis"
 import { SubtaskApiBodySchemaInput, subtaskSchema } from "@/schemas/subtask/create"
 import { subtaskRequestBodySchema } from "@/schemas/subtask/delete"
 import { mutateCreateNewSubtaskSchema } from "@/services/react-query/mutations"
+import { getAuth } from "@/utils/getAuth"
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
-    const headers = req.headers
-    const [bearer, userId] = headers.authorization?.split(" ") ?? []
-    if (bearer.toLowerCase() !== "bearer") {
-      return res.status(401).json({
-        message: "Invalid authentication.",
-      })
-    }
+    const auth = getAuth(req)
+    if (!auth.isAuth) return res.status(401).json(auth.responseJson)
+    const { userId } = auth
 
     const { isDone, task, taskId } = mutateCreateNewSubtaskSchema.parse(JSON.parse(req.body))
 
@@ -37,13 +34,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(201).json(subtask)
   }
   if (req.method === "DELETE") {
-    const headers = req.headers
-    const [bearer, userId] = headers.authorization?.split(" ") ?? []
-    if (bearer.toLowerCase() !== "bearer") {
-      return res.status(401).json({
-        message: "Invalid authentication.",
-      })
-    }
+    const auth = getAuth(req)
+    if (!auth.isAuth) return res.status(401).json(auth.responseJson)
+    const { userId } = auth
 
     try {
       const { id: subtaskId } = subtaskRequestBodySchema.parse(JSON.parse(req.body))

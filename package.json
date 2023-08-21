@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest --watchAll --verbose --silent"
+    "test": "jest --verbose --silent",
+    "test:watch": "jest --watchAll --verbose --silent"
   },
   "dependencies": {
     "@clerk/nextjs": "^4.23.2",

@@ -1,54 +1,128 @@
-import handler from "@/pages/api/test"
+import { nanoid } from "nanoid"
+
+import handler from "@/pages/api/task"
+import { mockRequest } from "@/utils/units/mockRequest"
+
+jest.useFakeTimers().setSystemTime(new Date("2023-01-01"))
+
+jest.mock("@/lib/redis", () => ({
+  redis: {
+    rpush: jest.fn(),
+    hset: jest.fn(),
+  },
+}))
 
 jest.mock("nanoid", () => ({
-  nanoid: () => "19191919",
+  nanoid: jest.fn(() => "19191919"),
 }))
 
 describe("/api/tasks", () => {
-  describe("authentication", () => {
-    const json = jest.fn()
-    const status = jest.fn(() => ({
-      json,
-    }))
+  let responseStatus: jest.Mock
+  let jsonResponse: jest.Mock
 
-    const req = {
-      method: "GET",
-      body: JSON.stringify({
-        name: "Markis",
-      }),
-    } as any
+  const setupResponseMocks = () => {
+    jsonResponse = jest.fn()
+    responseStatus = jest.fn(() => ({ json: jsonResponse }))
+  }
 
-    const res = {
-      status,
-    } as any
+  beforeEach(() => {
+    jest.clearAllMocks()
+    setupResponseMocks()
   })
 
-  const json = jest.fn()
-  const status = jest.fn(() => ({
-    json,
-  }))
+  const mockAuthorizationHeader = (userId: string) => ({
+    authorization: `bearer userid_${userId}`,
+  })
 
-  const req = {
-    headers: {
-      authorization: "xbearer 87482734897283479823",
-    },
-    method: "GET",
-    body: JSON.stringify({
-      name: "Markis",
-    }),
-  } as any
+  describe("POST method", () => {
+    const validUserId = "johndoe"
 
-  const res = {
-    status,
-  } as any
+    const createTaskRequest = (taskData: Record<string, any>) =>
+      mockRequest(mockAuthorizationHeader(validUserId), "POST", taskData)
 
-  test("POST", () => {
-    handler(req, res)
-    const apiResponse = json.mock.calls[0][0]
-    expect(status).toHaveBeenCalledWith(200)
-    expect(apiResponse).toMatchObject({
-      userId: "userid_19191919",
-      name: "Your name is Markis",
+    const handleBusinessRuleTest = async (
+      taskData: Record<string, any>,
+      expectedResponse: {
+        status: number
+        body: Record<string, any>
+      }
+    ) => {
+      const response = { json: jsonResponse, status: responseStatus } as any
+      const request = createTaskRequest(taskData) as any
+      await handler(request, response)
+      expect(responseStatus).toHaveBeenCalledWith(expectedResponse.status)
+      expect(jsonResponse).toHaveBeenCalledWith(expect.objectContaining(expectedResponse.body))
+    }
+
+    test("[201] should create and return a new task", async () => {
+      const taskData = {
+        endDate: 1692748541936,
+        task: "task number",
+      }
+      const expectedResponse = {
+        status: 201,
+        body: {
+          endDate: taskData.endDate,
+          isDone: false,
+          task: taskData.task,
+          createdAt: 1672531200000,
+          id: `task_${nanoid()}`,
+        },
+      }
+      await handleBusinessRuleTest(taskData, expectedResponse)
+    })
+
+    test("[400] should reject when bad input", async () => {
+      const invalidTaskData = {
+        task: "",
+      }
+      const expectedResponse = {
+        status: 400,
+        body: { message: "Bad input." },
+      }
+      await handleBusinessRuleTest(invalidTaskData, expectedResponse)
+    })
+
+    test("[400] should reject when no body is provided", async () => {
+      const emptyTaskData = {}
+      const expectedResponse = {
+        status: 400,
+        body: { message: "Bad input." },
+      }
+      await handleBusinessRuleTest(emptyTaskData, expectedResponse)
+    })
+
+    test("[400] should reject when more payload than needed is provided", async () => {
+      const excessivePayload = {
+        endDate: null,
+        isDone: false,
+        task: "task number",
+        createdAt: 1672531200000,
+        id: `task_${nanoid()}`,
+      }
+      const expectedResponse = {
+        status: 400,
+        body: { message: "Bad input." },
+      }
+      await handleBusinessRuleTest(excessivePayload, expectedResponse)
+    })
+
+    test("[201] should create when end date is null", async () => {
+      const taskDataWithNullEndDate = {
+        endDate: null,
+        task: "task number",
+      }
+      const expectedResponse = {
+        status: 201,
+        body: {
+          endDate: null,
+          isDone: false,
+          task: taskDataWithNullEndDate.task,
+          createdAt: 1672531200000,
+          id: `task_${nanoid()}`,
+        },
+      }
+      await handleBusinessRuleTest(taskDataWithNullEndDate, expectedResponse)
     })
   })
 })
