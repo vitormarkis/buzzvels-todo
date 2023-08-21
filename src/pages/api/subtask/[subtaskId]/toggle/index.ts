@@ -7,8 +7,8 @@ import { getAuth } from "@/utils/getAuth"
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "PATCH") {
     try {
-      const [{ responseNotAuth, json }] = getAuth(req, res)
-      if (responseNotAuth) return responseNotAuth.json(json)
+      const auth = getAuth(req)
+      if (!auth.isAuth) return res.status(401).json(auth.responseJson)
 
       const query = req.query as { subtaskId: string }
       const { isDone } = JSON.parse(req.body) as { isDone: boolean }

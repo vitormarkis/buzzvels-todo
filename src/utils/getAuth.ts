@@ -1,41 +1,40 @@
-import { NextApiRequest, NextApiResponse } from "next"
+import { NextApiRequest } from "next"
 
-type AuthResponse = {
-  responseNotAuth: NextApiResponse | null
-  json: {
-    message: string
-  }
-}
+export type AuthResponse =
+  | {
+      isAuth: false
+      responseJson: {
+        message: string
+      }
+    }
+  | {
+      isAuth: true
+      responseJson: {}
+      userId: string
+    }
 
-export type AuthInfo = {
-  userId: string | null
-  isAuth: boolean
-}
-
-export function getAuth(
-  req: NextApiRequest,
-  res: NextApiResponse
-): [authResponse: AuthResponse, authInfo: AuthInfo] {
-  let responseNotAuth: NextApiResponse | null = null
+export function getAuth(req: NextApiRequest): AuthResponse {
   const headers = req.headers
-  const [bearer, userId] = headers.authorization?.split(" ") ?? []
-  const isAuth = bearer.toLowerCase() === "bearer"
-  const json = {
-    message: "Invalid authorization token.",
+  const [bearer, userId] = headers?.authorization?.split(" ") ?? []
+  const isTokenInvalid = [
+    !bearer,
+    !userId,
+    bearer?.toLowerCase() !== "bearer",
+    userId?.length === 0,
+  ].some(Boolean)
+
+  if (isTokenInvalid) {
+    const responseJson = { message: "Invalid authorization token" }
+
+    return {
+      isAuth: false,
+      responseJson,
+    }
   }
 
-  if (bearer.toLowerCase() !== "bearer") {
-    responseNotAuth = res.status(401)
+  return {
+    isAuth: true,
+    responseJson: {},
+    userId,
   }
-
-  return [
-    {
-      responseNotAuth,
-      json,
-    },
-    {
-      isAuth,
-      userId,
-    },
-  ]
 }

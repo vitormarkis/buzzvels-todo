@@ -5,37 +5,51 @@ import { z } from "zod"
 import { redis } from "@/lib/redis"
 
 import { SubtaskSession, TaskAPI, subtaskSchema, taskSchemaAPI } from "@/fetchs/tasks/schema"
-import { createNewTaskFormSchema } from "@/form/create-new-task/schema"
+import { createNewTaskFormSchemaBody } from "@/form/create-new-task/schema"
+import { bodyParser } from "@/utils/bodyParser"
 import { getAuth } from "@/utils/getAuth"
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
-    const [{ responseNotAuth, json }, { userId }] = getAuth(req, res)
-    if (responseNotAuth) return responseNotAuth.json(json)
+    try {
+      const auth = getAuth(req)
+      if (!auth.isAuth) return res.status(401).json(auth.responseJson)
 
-    const { endDate, task } = createNewTaskFormSchema.parse(JSON.parse(req.body))
+      const bodyParsed = bodyParser(req, createNewTaskFormSchemaBody)
+      if (!bodyParsed.parse.success) return res.status(400).json(bodyParsed.json)
 
-    const taskId = `task_${nanoid()}`
+      const { userId } = auth
+      const { endDate, task } = bodyParsed.parse.data
 
-    const taskAPI: TaskAPI = {
-      endDate,
-      isDone: false,
-      task,
-      createdAt: new Date().getTime(),
-      id: taskId,
+      const taskId = `task_${nanoid()}`
+
+      const taskAPI: TaskAPI = {
+        endDate,
+        isDone: false,
+        task,
+        createdAt: new Date().getTime(),
+        id: taskId,
+      }
+
+      await redis.rpush(`tasks:${userId}`, taskId)
+      await redis.hset(taskId, taskAPI)
+
+      return res.status(201).json(taskAPI)
+    } catch (error) {
+      return res.status(500).json({
+        message: "Something went wrong during the creation of the task.",
+        error,
+      })
     }
-
-    await redis.rpush(`tasks:${userId}`, taskId)
-    await redis.hset(taskId, taskAPI)
-
-    return res.status(201).json(task)
   }
 
   if (req.method === "GET") {
     try {
       let errors: unknown[] = []
-      const [{ responseNotAuth, json }, { userId }] = getAuth(req, res)
-      if (responseNotAuth) return responseNotAuth.json(json)
+      const auth = getAuth(req)
+      if (!auth.isAuth) return res.status(401).json(auth.responseJson)
+
+      const { userId } = auth
 
       const [tasksIds, subtasksIds] = await Promise.all([
         redis.lrange(`tasks:${userId}`, 0, -1),
