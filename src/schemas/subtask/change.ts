@@ -1,11 +1,11 @@
 import { z } from "zod"
 
 import { taskSchemaAPI } from "@/fetchs/tasks/schema"
-import { subtaskRequestBodySchema } from "@/schemas/subtask/delete"
+import { subtaskSchema } from "@/schemas/subtask/create"
 
 export const mutateChangeSubtaskTextSchema = z.object({
   text: taskSchemaAPI.shape.task,
-  subtaskId: subtaskRequestBodySchema.shape.id,
+  subtaskId: subtaskSchema.shape.id,
 })
 
 export type MutateChangeSubtaskTextInput = z.input<typeof mutateChangeSubtaskTextSchema>

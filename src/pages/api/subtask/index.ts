@@ -39,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { userId } = auth
 
     try {
-      const { id: subtaskId } = subtaskRequestBodySchema.parse(JSON.parse(req.body))
+      const { subtaskId } = subtaskRequestBodySchema.parse(JSON.parse(req.body))
 
       await Promise.all([redis.del(subtaskId), redis.lrem(`subtasks:${userId}`, 1, subtaskId)])
 

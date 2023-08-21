@@ -47,8 +47,8 @@ export const SubtaskDeleteAlertDialog = React.forwardRef<
   const QueryCache = createQueryCache(queryClient, userId)
 
   const { mutate: deleteSubtaskMutate } = useMutation<{}, {}, MutateDeleteSubtaskInput>({
-    mutationFn: props => deleteSubtaskMutationFunction(props, headers),
-    onMutate: ({ id: subtaskId, taskId }) => {
+    mutationFn: payload => deleteSubtaskMutationFunction(payload, headers),
+    onMutate: ({ subtaskId, taskId }) => {
       QueryCache.subtasks.remove(subtaskId, taskId, {
         onRemoveLastOne: () => {
           setWhichAccordionOpen("")
@@ -72,8 +72,8 @@ export const SubtaskDeleteAlertDialog = React.forwardRef<
   })
 
   const handleDeleteSubtask = (props: MutateDeleteSubtaskInput) => {
-    const { id, taskId } = mutateDeleteSubtaskSchema.parse(props)
-    deleteSubtaskMutate({ id, taskId })
+    const { subtaskId, taskId } = mutateDeleteSubtaskSchema.parse(props)
+    deleteSubtaskMutate({ subtaskId, taskId })
   }
 
   return (
@@ -105,7 +105,7 @@ export const SubtaskDeleteAlertDialog = React.forwardRef<
             <Button
               onClick={() =>
                 handleDeleteSubtask({
-                  id: subtask.id,
+                  subtaskId: subtask.id,
                   taskId: subtask.taskId,
                 })
               }

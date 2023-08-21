@@ -1,19 +1,16 @@
-import { SubtaskRequestBodySchemaInput, subtaskRequestBodySchema } from "@/schemas/subtask/delete"
+import { SubtaskRequestBodySchemaInput } from "@/schemas/subtask/delete"
 
 export async function deleteSubtaskMutationFunction(
-  props: SubtaskRequestBodySchemaInput,
+  { subtaskId }: SubtaskRequestBodySchemaInput,
   headers: Headers
 ) {
-  const { id } = subtaskRequestBodySchema.parse(props)
-
-  const response = await fetch("/api/subtask", {
-    body: JSON.stringify({ id }),
-    headers,
+  const response = await fetch(`/api/subtask/${subtaskId}`, {
     method: "DELETE",
+    headers,
   })
 
   if (!response.ok) {
-    throw new Error("Failed to delete task")
+    throw new Error("Failed to delete subtask")
   }
 
   return response
