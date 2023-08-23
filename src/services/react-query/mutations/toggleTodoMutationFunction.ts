@@ -16,5 +16,6 @@ export async function toggleTaskMutationFunction(
     throw new Error("Failed to toggle task")
   }
 
-  return response
+  const data = await response.json()
+  return data
 }

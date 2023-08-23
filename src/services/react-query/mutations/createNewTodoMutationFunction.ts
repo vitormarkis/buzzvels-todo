@@ -1,8 +1,9 @@
-import { CreateNewTaskForm, createNewTaskFormSchema } from "@/form/create-new-task/schema"
+import { CreateNewTaskForm } from "@/form/create-new-task/schema"
 
-export async function createNewTodoMutationFunction(props: CreateNewTaskForm, headers: Headers) {
-  const { endDate, task } = createNewTaskFormSchema.parse(props)
-
+export async function createNewTodoMutationFunction(
+  { endDate, task }: CreateNewTaskForm,
+  headers: Headers
+) {
   const response = await fetch("/api/task", {
     body: JSON.stringify({
       endDate,
@@ -16,5 +17,6 @@ export async function createNewTodoMutationFunction(props: CreateNewTaskForm, he
     throw new Error("Failed to create task")
   }
 
-  return response
+  const data = await response.json()
+  return data
 }

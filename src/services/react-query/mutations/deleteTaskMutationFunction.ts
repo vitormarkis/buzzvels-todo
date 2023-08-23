@@ -10,5 +10,6 @@ export async function deleteTaskMutationFunction({ taskId }: MutateDeleteTask, h
     throw new Error("Failed to delete task")
   }
 
-  return response
+  const data = await response.json()
+  return data
 }

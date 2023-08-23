@@ -13,5 +13,6 @@ export async function deleteSubtaskMutationFunction(
     throw new Error("Failed to delete subtask")
   }
 
-  return response
+  const data = await response.json()
+  return data
 }

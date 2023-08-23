@@ -16,5 +16,6 @@ export async function changeSubtaskTextMutationFunction(
     throw new Error("Failed to change sub-task text")
   }
 
-  return response
+  const data = await response.json()
+  return data
 }

@@ -16,5 +16,6 @@ export async function toggleSubtaskMutationFunction(
     throw new Error("Failed to toggle sub-task")
   }
 
-  return response
+  const data = await response.json()
+  return data
 }

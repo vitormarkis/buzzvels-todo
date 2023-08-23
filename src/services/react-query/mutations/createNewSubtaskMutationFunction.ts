@@ -29,5 +29,6 @@ export async function createNewSubtaskMutationFunction(
     throw new Error("Failed to create task")
   }
 
-  return response
+  const data = await response.json()
+  return data
 }
