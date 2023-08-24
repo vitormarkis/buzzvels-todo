@@ -1,6 +1,9 @@
 import { nanoid } from "nanoid"
+import { z } from "zod"
 
+import { mock_Todos } from "@/__tests__/__mocks__/api/task"
 import handler from "@/pages/api/task"
+import { GetTasksResponse } from "@/utils/api/getTasks"
 import { mockRequest } from "@/utils/units/mockRequest"
 
 jest.useFakeTimers().setSystemTime(new Date("2023-01-01"))
@@ -14,6 +17,17 @@ jest.mock("@/lib/redis", () => ({
 
 jest.mock("nanoid", () => ({
   nanoid: jest.fn(() => "19191919"),
+}))
+
+jest.mock("@/utils/api/getTasks", () => ({
+  getTasks: jest.fn(
+    () =>
+      ({
+        errors: [],
+        failedToGetTasks: false,
+        tasks: mock_Todos,
+      }) satisfies GetTasksResponse
+  ),
 }))
 
 describe("/api/tasks", () => {
@@ -123,6 +137,51 @@ describe("/api/tasks", () => {
         },
       }
       await handleBusinessRuleTest(taskDataWithNullEndDate, expectedResponse)
+    })
+  })
+
+  describe("GET method", () => {
+    const validUserId = "johndoe"
+
+    const createTaskRequest = (taskData?: Record<string, any>) =>
+      mockRequest(mockAuthorizationHeader(validUserId), "GET", taskData)
+
+    const handleBusinessRuleTest = async (
+      expectedResponse: {
+        status: number
+        body: Record<string, any>
+      },
+      taskData: Record<string, any> = {}
+    ) => {
+      const response = { json: jsonResponse, status: responseStatus } as any
+      const request = createTaskRequest(taskData) as any
+      await handler(request, response)
+      expect(responseStatus).toHaveBeenCalledWith(expectedResponse.status)
+      expect(jsonResponse).toHaveBeenCalledWith(
+        expect.arrayContaining([expect.objectContaining(expectedResponse.body)])
+      )
+    }
+
+    test("[201] fetch ", async () => {
+      const response = { json: jsonResponse, status: responseStatus } as any
+      const request = createTaskRequest() as any
+      await handler(request, response)
+      const apiResponse = jsonResponse.mock.calls[0][0]
+      const apiResponseParse = z
+        .array(
+          z.object({
+            id: z.string(),
+            endDate: z.number().nullable(),
+            createdAt: z.number(),
+            task: z.string(),
+            isDone: z.boolean(),
+            subtasks: z.array(z.any()),
+          })
+        )
+        .safeParse(apiResponse)
+      expect(responseStatus).toHaveBeenCalledWith(200)
+      if (!apiResponseParse.success) console.log(apiResponseParse.error)
+      expect(apiResponseParse.success).toBeTruthy()
     })
   })
 })

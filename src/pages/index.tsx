@@ -4,7 +4,7 @@ import { createPortal } from "react-dom"
 
 import { useAuth } from "@clerk/nextjs"
 import { User, buildClerkProps, clerkClient, getAuth } from "@clerk/nextjs/server"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { Query, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 import { cn } from "@/lib/utils"
 
@@ -19,6 +19,7 @@ import { Header, Sidebar } from "@/components/organisms"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 
+import { createQueryCache } from "@/factories/createQueryCache"
 import { useTasks } from "@/factories/createTasks"
 import { useScrollPosition } from "@/hooks/useScrollPosition"
 import { useTasksListState } from "@/hooks/useTasksListState"
@@ -50,15 +51,14 @@ export default function Home({ user }: ServerSideProps) {
   const [floatingNewTaskVisible, setFloatingNewTaskVisible] = useState(false)
   const [isLoadingNewTask, setIsLoadingNewTask] = useState(false)
 
-  console.log({ isLoadingNewTask })
-
   const { userId } = useAuth()
   const { headers } = useUserInfo()
   const queryClient = useQueryClient()
   const tasksCache: TaskSession[] | undefined = queryClient.getQueryData(["tasksIds", userId])
   const [isMounted, setIsMounted] = useState(false)
   const { toast } = useToast()
-  const { sortCurrent, resetSort, setSortState } = useTasksListState()
+  const { sortCurrent } = useTasksListState()
+  const QueryCache = createQueryCache(queryClient, userId)
 
   const { data: tasksResponse } = useQuery<TaskSession[]>({
     queryKey: ["tasksIds", userId],
@@ -84,8 +84,12 @@ export default function Home({ user }: ServerSideProps) {
     sortCurrent,
   })
 
-  const { mutate: createNewTodoMutate } = useMutation<{}, {}, CreateNewTaskForm>({
-    mutationFn: props => createNewTodoMutationFunction(props, headers),
+  const { mutate: createNewTodoMutate } = useMutation<
+    TaskSession,
+    any,
+    CreateNewTaskForm & { taskId: string }
+  >({
+    mutationFn: ({ taskId, ...props }) => createNewTodoMutationFunction(props, headers),
     onError: () => {
       toast({
         variant: "destructive",
@@ -98,16 +102,19 @@ export default function Home({ user }: ServerSideProps) {
         ),
       })
     },
-    onMutate: () => {
-      setIsLoadingNewTask(true)
+    onMutate: ({ endDate, task, taskId }) => {
+      QueryCache.tasks.add({
+        endDate,
+        task,
+        id: taskId,
+      })
     },
-    onSuccess: () => {
-      resetSort()
-      setSortState(["date", "createdAt-asc"])
-      queryClient.invalidateQueries(["tasksIds", userId])
-    },
-    onSettled: () => {
-      setIsLoadingNewTask(false)
+    onSuccess: ({ createdAt, id }, { taskId }) => {
+      QueryCache.tasks.patch(taskId, currentTask => ({
+        ...currentTask,
+        createdAt,
+        id,
+      }))
     },
     retry: 3,
   })

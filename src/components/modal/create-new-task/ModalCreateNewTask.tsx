@@ -1,5 +1,6 @@
 import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
+import { nanoid } from "nanoid"
 import { useRouter } from "next/router"
 import React, { useState } from "react"
 import { SubmitHandler, useForm } from "react-hook-form"
@@ -25,6 +26,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
+import { TaskSession } from "@/fetchs/tasks/schema"
 import {
   CreateNewTaskForm,
   CreateNewTaskFormInput,
@@ -33,7 +35,17 @@ import {
 
 export type ModalCreateNewTaskProps = React.ComponentPropsWithoutRef<"div"> & {
   children?: React.ReactNode
-  mutate: UseMutateFunction<{}, {}, CreateNewTaskForm>
+  mutate: UseMutateFunction<
+    TaskSession,
+    any,
+    {
+      endDate: number | null
+      task: string
+    } & {
+      taskId: string
+    },
+    unknown
+  >
 }
 
 export const ModalCreateNewTask = React.forwardRef<
@@ -41,7 +53,8 @@ export const ModalCreateNewTask = React.forwardRef<
   ModalCreateNewTaskProps
 >(function ModalCreateNewTaskComponent({ children, mutate, ...props }, ref) {
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [hasDeadlineDate, setHasDeadlineDate] = useState<boolean | "indeterminate">(false)
+  const [hasDeadlineDate, setHasDeadlineDate] = useState<boolean | "indeterminate">("indeterminate")
+  const [endDatePickerIsDirty, setEndDatePickerIsDirty] = useState(false)
   const { userId } = useAuth()
   const router = useRouter()
 
@@ -57,14 +70,18 @@ export const ModalCreateNewTask = React.forwardRef<
     defaultValues: {
       task: "",
       endDate: null,
+      hasDeadlineDate: "indeterminate",
     },
     resolver: zodResolver(createNewTaskFormSchema),
+    mode: "onSubmit",
   })
+
+  const endDate = methods.watch("endDate")
 
   const submitHandler: SubmitHandler<CreateNewTaskFormInput> = async formData => {
     const taskMutateProps = formData as CreateNewTaskForm
     setIsModalOpen(false)
-    mutate(taskMutateProps)
+    mutate({ ...taskMutateProps, taskId: `TEMPORARY_${nanoid()}` })
   }
 
   return (
@@ -110,10 +127,11 @@ export const ModalCreateNewTask = React.forwardRef<
                   <FormItem className="flex gap-2 items-center space-y-0">
                     <FormControl>
                       <Checkbox
-                        checked={field.value}
+                        checked={field.value === "indeterminate" ? false : field.value}
                         onCheckedChange={s => {
                           field.onChange(s)
                           setHasDeadlineDate(s)
+                          if (endDatePickerIsDirty) methods.trigger("endDate")
                         }}
                         onBlur={field.onBlur}
                       />
@@ -138,7 +156,7 @@ export const ModalCreateNewTask = React.forwardRef<
                                 "__two border text-color w-full pl-3 text-left font-normal",
                                 !field.value && "text-color-soft"
                               )}
-                              disabled={!hasDeadlineDate}>
+                              disabled={!hasDeadlineDate || hasDeadlineDate === "indeterminate"}>
                               {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
@@ -166,6 +184,11 @@ export const ModalCreateNewTask = React.forwardRef<
               <div></div>
               <Button
                 type="submit"
+                onClick={() => {
+                  if (hasDeadlineDate === true && endDate === null) {
+                    setEndDatePickerIsDirty(true)
+                  }
+                }}
                 className="__action">
                 Add to-do
               </Button>

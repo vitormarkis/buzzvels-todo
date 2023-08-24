@@ -9,9 +9,7 @@ export function createQueryCacheGetters(queryClient: QueryClient, userId?: UserI
 
   const tasks = {
     get: () => {
-      const tasks = queryClient.getQueryData(TASKS_QUERY_KEY) as TaskSession[]
-      if (!tasks)
-        throw new Error("You're trying to mutate tasks cache, but no tasks cache was found.")
+      const tasks = (queryClient.getQueryData(TASKS_QUERY_KEY) as TaskSession[] | undefined) ?? []
       return {
         tasks,
       }
