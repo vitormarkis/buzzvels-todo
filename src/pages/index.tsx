@@ -20,12 +20,9 @@ import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 
 import { createQueryCache } from "@/factories/createQueryCache"
-import { useTasks } from "@/factories/createTasks"
 import { useScrollPosition } from "@/hooks/useScrollPosition"
-import { useTasksListState } from "@/hooks/useTasksListState"
 
 import { useUserInfo } from "@/contexts/user-info/userInfoContext"
-import { getTasks } from "@/fetchs/tasks/get"
 import { TaskSession } from "@/fetchs/tasks/schema"
 import { CreateNewTaskForm } from "@/form/create-new-task/schema"
 import { createNewTodoMutationFunction } from "@/services/react-query/mutations"
@@ -57,32 +54,7 @@ export default function Home({ user }: ServerSideProps) {
   const tasksCache: TaskSession[] | undefined = queryClient.getQueryData(["tasksIds", userId])
   const [isMounted, setIsMounted] = useState(false)
   const { toast } = useToast()
-  const { sortCurrent } = useTasksListState()
   const QueryCache = createQueryCache(queryClient, userId)
-
-  const { data: tasksResponse } = useQuery<TaskSession[]>({
-    queryKey: ["tasksIds", userId],
-    queryFn: () => getTasks(headers),
-    staleTime: 1000 * 60, // 1 minute
-    refetchOnWindowFocus: false,
-    onError: () => {
-      toast({
-        variant: "destructive",
-        title: "Failed to retrieve tasks",
-        description: (
-          <>
-            Something went wrong on our server during the fetch of your tasks,{" "}
-            <strong>please try again.</strong>
-          </>
-        ),
-      })
-    },
-    enabled: !!userId,
-    retry: 3,
-  })
-  const { tasks } = useTasks(tasksResponse, {
-    sortCurrent,
-  })
 
   const { mutate: createNewTodoMutate } = useMutation<
     TaskSession,
@@ -164,11 +136,7 @@ export default function Home({ user }: ServerSideProps) {
           </ModalCreateNewTask>
           <PadWrapper className="__two py-1 xs:p-1 gap-1">
             <SortingBar />
-            <TasksList
-              tasks={tasks ?? null}
-              className="__two"
-              isLoadingNewTask={isLoadingNewTask}
-            />
+            <TasksList className="__two" />
           </PadWrapper>
         </main>
       </CenteredContainer>

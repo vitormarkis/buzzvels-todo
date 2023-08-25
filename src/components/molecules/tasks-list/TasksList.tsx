@@ -6,45 +6,60 @@ import { PadWrapper } from "@/components/container/pad-container/PadWrapper"
 import { IconFolderOpen } from "@/components/icons/IconFolderOpen"
 import { ToDo, ToDoSkeleton } from "@/components/molecules/to-do/ToDo"
 
-import { TaskSession } from "@/fetchs/tasks/schema"
+import { TasksContextProvider, useTasksContext } from "@/contexts/tasks/tasksContext"
 
-export type TasksListProps = React.ComponentPropsWithoutRef<"div"> & {
-  isLoadingNewTask: boolean
-  tasks: TaskSession[] | null
-}
+export type TasksListProps = React.ComponentPropsWithoutRef<"div"> & {}
 
 export const TasksList = React.forwardRef<React.ElementRef<"div">, TasksListProps>(
-  function TasksListComponent({ tasks, isLoadingNewTask, ...props }, ref) {
+  function TasksListComponent({ ...props }, ref) {
     return (
-      <PadWrapper
-        {...props}
-        className={cn("gap-1", props.className)}
-        ref={ref}>
-        {isLoadingNewTask && <ToDoSkeleton />}
-        {tasks?.length && tasks.length > 0 ? (
-          tasks.map(task => (
-            <ToDo
-              key={task.id}
-              className="__first"
-              task={task}
-            />
-          ))
-        ) : (
-          <>
-            {!isLoadingNewTask && (
-              <div className="py-4 flex flex-col gap-2 items-center">
-                <h3 className="text-center text-color-soft text-xl">There is no tasks yet.</h3>
-                <IconFolderOpen
-                  size={80}
-                  className="text-color-soft"
-                />
-              </div>
-            )}
-          </>
-        )}
-      </PadWrapper>
+      <TasksContextProvider>
+        <PadWrapper
+          {...props}
+          className={cn("gap-1", props.className)}
+          ref={ref}>
+          <TasksDisplayed />
+        </PadWrapper>
+      </TasksContextProvider>
     )
   }
 )
 
 TasksList.displayName = "TasksList"
+
+export type TasksDisplayedProps = {}
+
+export function TasksDisplayed({}: TasksDisplayedProps) {
+  const { tasks, useTasksQuery } = useTasksContext()
+  const { isLoading } = useTasksQuery
+
+  if (isLoading || tasks === null)
+    // if (true)
+    return (
+      <div className="flex flex-col gap-2">
+        <ToDoSkeleton />
+        <ToDoSkeleton />
+        <ToDoSkeleton />
+        <ToDoSkeleton />
+      </div>
+    )
+
+  if (tasks.length === 0)
+    return (
+      <div className="py-4 flex flex-col gap-2 items-center">
+        <h3 className="text-center text-color-soft text-xl">There is no tasks yet.</h3>
+        <IconFolderOpen
+          size={80}
+          className="text-color-soft"
+        />
+      </div>
+    )
+
+  return tasks.map(task => (
+    <ToDo
+      key={task.id}
+      className="__first"
+      task={task}
+    />
+  ))
+}

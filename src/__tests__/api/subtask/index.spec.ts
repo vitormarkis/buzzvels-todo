@@ -37,7 +37,7 @@ describe("/api/subtask", () => {
   describe("POST method", () => {
     const validUserId = "johndoe"
 
-    const createTaskRequest = (subtaskData: Record<string, any>) =>
+    const createSubtaskRequest = (subtaskData: Record<string, any>) =>
       mockRequest(mockAuthorizationHeader(validUserId), "POST", subtaskData)
 
     const handleBusinessRuleTest = async (
@@ -48,7 +48,7 @@ describe("/api/subtask", () => {
       }
     ) => {
       const response = { json: jsonResponse, status: responseStatus } as any
-      const request = createTaskRequest(subtaskData) as any
+      const request = createSubtaskRequest(subtaskData) as any
       await handler(request, response)
       expect(responseStatus).toHaveBeenCalledWith(expectedResponse.status)
       expect(jsonResponse).toHaveBeenCalledWith(expect.objectContaining(expectedResponse.body))

@@ -92,6 +92,7 @@ export const EditableLabel = React.forwardRef<React.ElementRef<"div">, EditableL
           return
         }
         onAction(newValue)
+        setPreviousValue(newValue)
       }
     }
 

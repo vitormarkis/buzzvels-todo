@@ -7,6 +7,10 @@ import { createTasksCache } from "@/factories/createTasksCache"
 import { SubtaskSession, TaskSession } from "@/fetchs/tasks/schema"
 
 type UserID = string | null | undefined
+type PatchLocation = {
+  taskId: string
+  subtaskId: string
+}
 interface RemoveCallbacks {
   onRemoveLastOne?: () => void
 }
@@ -81,10 +85,29 @@ export function createSubtasksCache(queryClient: QueryClient, userId?: UserID) {
     TasksCache.set(newTasks)
   }
 
+  const patch = (
+    location: PatchLocation,
+    subtaskPatchCallback: (currentSubtask: SubtaskSession) => SubtaskSession
+  ) => {
+    const newTasks = tasks.map(task =>
+      task.id === location.taskId
+        ? {
+            ...task,
+            subtasks: task.subtasks.map(subtask =>
+              subtask.id === location.subtaskId ? subtaskPatchCallback(subtask) : subtask
+            ),
+          }
+        : task
+    )
+
+    TasksCache.set(newTasks)
+  }
+
   return {
     add,
     remove,
     toggle,
     changeText,
+    patch,
   }
 }

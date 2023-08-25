@@ -30,7 +30,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { createQueryCache } from "@/factories/createQueryCache"
 
 import { useUserInfo } from "@/contexts/user-info/userInfoContext"
-import { SubtaskSession, TaskSession } from "@/fetchs/tasks/schema"
+import { SubtaskAPI, SubtaskSession, TaskSession } from "@/fetchs/tasks/schema"
 import {
   MutateChangeSubtaskTextInput,
   mutateChangeSubtaskTextSchema,
@@ -162,11 +162,17 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
     retry: 3,
   })
 
-  const { mutate: createNewSubtaskMutate } = useMutation<{}, {}, MutateCreateNewSubtaskInput>({
-    mutationFn: props => createNewSubtaskMutationFunction(props, headers),
-    onMutate: ({ taskId, task }) => {
+  const { mutate: createNewSubtaskMutate } = useMutation<
+    SubtaskAPI,
+    {},
+    MutateCreateNewSubtaskInput & {
+      subtaskId: string
+    }
+  >({
+    mutationFn: ({ subtaskId, ...props }) => createNewSubtaskMutationFunction(props, headers),
+    onMutate: ({ taskId, task, subtaskId }) => {
       QueryCache.subtasks.add({
-        id: nanoid(),
+        id: subtaskId,
         isDone: !!isNewSubtaskDone,
         createdAt: new Date().getTime(),
         task,
@@ -186,8 +192,18 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
         ),
       })
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries(["tasksIds", userId])
+    onSuccess: ({ createdAt, id }, { subtaskId, taskId }) => {
+      QueryCache.subtasks.patch(
+        {
+          taskId,
+          subtaskId,
+        },
+        currentSubtask => ({
+          ...currentSubtask,
+          createdAt,
+          id,
+        })
+      )
     },
     retry: 3,
   })
@@ -222,7 +238,7 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
 
   const handleCreateNewSubtask = (props: MutateCreateNewSubtaskInput) => {
     const { isDone, task, taskId } = mutateCreateNewSubtaskSchema.parse(props)
-    createNewSubtaskMutate({ isDone, task, taskId })
+    createNewSubtaskMutate({ isDone, task, taskId, subtaskId: `TEMP_${nanoid()}` })
   }
 
   const setAccordion = (openingAccordion: string) => (currentOpenAccordion: string) =>

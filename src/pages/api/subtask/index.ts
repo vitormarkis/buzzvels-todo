@@ -21,13 +21,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { isDone, task, taskId } = bodyParsed.parse.data
     const subtaskId = `subtask_${nanoid()}`
 
-    const subtask: SubtaskAPI = {
+    const subtask = {
       createdAt: new Date().getTime(),
       id: subtaskId,
       isDone,
       task,
       taskId,
-    }
+    } satisfies SubtaskAPI
 
     await Promise.all([
       redis.rpush(`subtasks:${userId}`, subtaskId),
