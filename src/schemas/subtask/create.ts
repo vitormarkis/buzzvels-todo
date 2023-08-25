@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-export const subtaskSchema = z
+export const subtaskSchemaAPI = z
   .object({
     createdAt: z.number(),
     id: z.string(),
@@ -10,5 +10,5 @@ export const subtaskSchema = z
   })
   .strict()
 
-export type SubtaskApiBodySchemaInput = z.input<typeof subtaskSchema>
-export type SubtaskApiBodySchema = z.output<typeof subtaskSchema>
+export type SubtaskApiBodySchemaInput = z.input<typeof subtaskSchemaAPI>
+export type SubtaskApiBodySchema = z.output<typeof subtaskSchemaAPI>

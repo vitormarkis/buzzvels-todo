@@ -3,7 +3,7 @@ import { z } from "zod"
 import { Redis } from "@upstash/redis"
 
 import { SubtaskSession, TaskSession, taskSchemaAPI } from "@/fetchs/tasks/schema"
-import { subtaskSchema } from "@/schemas/subtask/create"
+import { subtaskSchemaAPI } from "@/schemas/subtask/create"
 
 export interface GetTasksResponse {
   tasks: TaskSession[]
@@ -24,7 +24,7 @@ export async function getTasks(redis: Redis, userId: string): Promise<GetTasksRe
   ])
 
   const tasksSafeParse = z.array(taskSchemaAPI).safeParse(unparsedTasks)
-  const subtasksSafeParse = z.array(subtaskSchema).safeParse(unparsedSubtasks)
+  const subtasksSafeParse = z.array(subtaskSchemaAPI).safeParse(unparsedSubtasks)
 
   const entitiesParsedSuccessfully = [tasksSafeParse, subtasksSafeParse].every(
     result => result.success

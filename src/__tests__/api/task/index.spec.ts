@@ -1,7 +1,7 @@
 import { nanoid } from "nanoid"
 import { z } from "zod"
 
-import { mock_Todos } from "@/__tests__/__mocks__/api/task"
+import { mock_Todos } from "@/__mocks__/api/task"
 import handler from "@/pages/api/task"
 import { GetTasksResponse } from "@/utils/api/getTasks"
 import { mockRequest } from "@/utils/units/mockRequest"
@@ -146,23 +146,7 @@ describe("/api/tasks", () => {
     const createTaskRequest = (taskData?: Record<string, any>) =>
       mockRequest(mockAuthorizationHeader(validUserId), "GET", taskData)
 
-    const handleBusinessRuleTest = async (
-      expectedResponse: {
-        status: number
-        body: Record<string, any>
-      },
-      taskData: Record<string, any> = {}
-    ) => {
-      const response = { json: jsonResponse, status: responseStatus } as any
-      const request = createTaskRequest(taskData) as any
-      await handler(request, response)
-      expect(responseStatus).toHaveBeenCalledWith(expectedResponse.status)
-      expect(jsonResponse).toHaveBeenCalledWith(
-        expect.arrayContaining([expect.objectContaining(expectedResponse.body)])
-      )
-    }
-
-    test("[201] fetch ", async () => {
+    test("[201] fetch tasks properly", async () => {
       const response = { json: jsonResponse, status: responseStatus } as any
       const request = createTaskRequest() as any
       await handler(request, response)

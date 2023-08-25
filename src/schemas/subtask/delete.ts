@@ -1,11 +1,11 @@
 import { z } from "zod"
 
 import { taskSchemaAPI } from "@/fetchs/tasks/schema"
-import { subtaskSchema } from "@/schemas/subtask/create"
+import { subtaskSchemaAPI } from "@/schemas/subtask/create"
 
 export const subtaskRequestBodySchema = z
   .object({
-    subtaskId: subtaskSchema.shape.id,
+    subtaskId: subtaskSchemaAPI.shape.id,
   })
   .strict()
 
@@ -15,7 +15,7 @@ export type SubtaskRequestBodySchema = z.output<typeof subtaskRequestBodySchema>
 export const mutateDeleteSubtaskSchema = z
   .object({
     taskId: taskSchemaAPI.shape.id,
-    subtaskId: subtaskSchema.shape.id,
+    subtaskId: subtaskSchemaAPI.shape.id,
   })
   .strict()
 

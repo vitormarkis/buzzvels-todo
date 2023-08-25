@@ -22,6 +22,7 @@ export const subtaskSchema = z
 
 export type TaskAPI = z.output<typeof taskSchemaAPI>
 export type SubtaskSession = z.output<typeof subtaskSchema>
+export type SubtaskAPI = z.output<typeof subtaskSchema>
 export type TaskSession = TaskAPI & {
   subtasks: SubtaskSession[]
 }

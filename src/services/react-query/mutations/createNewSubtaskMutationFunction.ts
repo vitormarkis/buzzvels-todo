@@ -1,8 +1,8 @@
 import { z } from "zod"
 
-import { subtaskSchema } from "@/schemas/subtask/create"
+import { subtaskSchemaAPI } from "@/schemas/subtask/create"
 
-export const mutateCreateNewSubtaskSchema = subtaskSchema
+export const mutateCreateNewSubtaskSchema = subtaskSchemaAPI
   .pick({
     isDone: true,
     task: true,

@@ -3,9 +3,10 @@ import { NextApiRequest, NextApiResponse } from "next"
 
 import { redis } from "@/lib/redis"
 
-import { SubtaskApiBodySchemaInput, subtaskSchema } from "@/schemas/subtask/create"
+import { SubtaskAPI } from "@/fetchs/tasks/schema"
 import { subtaskRequestBodySchema } from "@/schemas/subtask/delete"
 import { mutateCreateNewSubtaskSchema } from "@/services/react-query/mutations"
+import { bodyParser } from "@/utils/bodyParser"
 import { getAuth } from "@/utils/getAuth"
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -14,17 +15,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!auth.isAuth) return res.status(401).json(auth.responseJson)
     const { userId } = auth
 
-    const { isDone, task, taskId } = mutateCreateNewSubtaskSchema.parse(JSON.parse(req.body))
+    const bodyParsed = bodyParser(req, mutateCreateNewSubtaskSchema)
+    if (!bodyParsed.parse.success) return res.status(400).json(bodyParsed.json)
 
+    const { isDone, task, taskId } = bodyParsed.parse.data
     const subtaskId = `subtask_${nanoid()}`
 
-    const subtask = subtaskSchema.parse({
+    const subtask: SubtaskAPI = {
       createdAt: new Date().getTime(),
       id: subtaskId,
       isDone,
       task,
       taskId,
-    } satisfies SubtaskApiBodySchemaInput)
+    }
 
     await Promise.all([
       redis.rpush(`subtasks:${userId}`, subtaskId),
@@ -34,16 +37,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(201).json(subtask)
   }
   if (req.method === "DELETE") {
-    const auth = getAuth(req)
-    if (!auth.isAuth) return res.status(401).json(auth.responseJson)
-    const { userId } = auth
-
     try {
-      const { subtaskId } = subtaskRequestBodySchema.parse(JSON.parse(req.body))
+      const auth = getAuth(req)
+      if (!auth.isAuth) return res.status(401).json(auth.responseJson)
+      const { userId } = auth
+      const bodyParsed = bodyParser(req, subtaskRequestBodySchema)
+      if (!bodyParsed.parse.success) return res.status(400).json(bodyParsed.json)
+
+      const { subtaskId } = bodyParsed.parse.data
 
       await Promise.all([redis.del(subtaskId), redis.lrem(`subtasks:${userId}`, 1, subtaskId)])
 
-      return res.status(201).json({})
+      return res.status(200).json({
+        message: "Subtask deleted with success!",
+      })
     } catch (error) {
       return res.status(500).json(error)
     }
