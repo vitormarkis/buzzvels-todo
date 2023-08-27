@@ -1,9 +1,21 @@
 import { NextApiRequest, NextApiResponse } from "next"
+import { z } from "zod"
 
 import { redis } from "@/lib/redis"
 
 import { MutateChangeTaskTextInput, mutateChangeTaskTextSchema } from "@/schemas/task/change"
+import { bodyParser } from "@/utils/bodyParser"
 import { getAuth } from "@/utils/getAuth"
+import { getFailedJson } from "@/utils/getFailedJson"
+import { handleOperationsSuccess } from "@/utils/handleOperationsSuccess"
+import { performOperation } from "@/utils/performTransaction"
+import { queryParser } from "@/utils/queryParser"
+
+const querySchema = z.object({ taskId: z.string() })
+
+export const taskPATCHBodySchema = mutateChangeTaskTextSchema.pick({
+  text: true,
+})
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "DELETE") {
@@ -12,21 +24,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!auth.isAuth) return res.status(401).json(auth.responseJson)
 
       const { userId } = auth
-      const { taskId } = req.query as { taskId: string }
 
-      const operationResponses = await Promise.all([
-        redis.del(taskId),
-        redis.lrem(`tasks:${userId}`, 1, taskId),
-      ])
+      const queryParsed = queryParser(req, querySchema)
+      if (!queryParsed.parse.success) return res.status(400).json(queryParsed.json)
+      const { taskId } = queryParsed.parse.data
 
-      const allOperationsSuccess = operationResponses.every(n => n === 0)
+      // prettier-ignore
+      const transaction =
+        redis
+          .multi()
+          .del(taskId)
+          .lrem(`tasks:${userId}`, 1, taskId)
+          .exec()
 
-      if (allOperationsSuccess) {
-        throw new Error("Failed to delete task.")
-      }
+      const operation = await performOperation(() => transaction)
+      if (!operation.success) return res.status(500).json(getFailedJson("task", req))
 
       return res.status(200).json({
-        message: "Delete task successfully.",
+        message: "Task deleted with success!",
       })
     } catch (error) {
       return res.status(400).json({
@@ -41,19 +56,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const auth = getAuth(req)
       if (!auth.isAuth) return res.status(401).json(auth.responseJson)
 
-      const query = req.query as { taskId: string }
-      const body = JSON.parse(req.body)
+      const queryParsed = queryParser(req, querySchema)
+      if (!queryParsed.parse.success) return res.status(400).json(queryParsed.json)
 
-      const { taskId, text } = mutateChangeTaskTextSchema.parse({
-        taskId: query.taskId,
-        text: body.text,
-      } satisfies MutateChangeTaskTextInput)
+      const bodyParsed = bodyParser(req, taskPATCHBodySchema)
+      if (!bodyParsed.parse.success) return res.status(400).json(bodyParsed.json)
 
-      const successResponse = await redis.hset(taskId, { task: text })
+      const { taskId } = queryParsed.parse.data
+      const { text } = bodyParsed.parse.data
 
-      if (successResponse !== 0) {
-        throw new Error("Failed to change the task text.")
-      }
+      const operations = redis.hset(taskId, { task: text })
+
+      const operation = await performOperation(() => operations)
+      if (!operation.success) return res.status(500).json(getFailedJson("task", req))
 
       return res.status(200).json({
         message: "Change task text successfully.",

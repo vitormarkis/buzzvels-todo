@@ -8,6 +8,10 @@ import { createNewTaskFormSchemaBody } from "@/form/create-new-task/schema"
 import { getTasks } from "@/utils/api/getTasks"
 import { bodyParser } from "@/utils/bodyParser"
 import { getAuth } from "@/utils/getAuth"
+import { getFailedJson } from "@/utils/getFailedJson"
+import { handleOperationsSuccess } from "@/utils/handleOperationsSuccess"
+import { performOperation } from "@/utils/performTransaction"
+import { validateOperation } from "@/utils/validateOperation"
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
@@ -31,8 +35,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: taskId,
       }
 
-      await redis.rpush(`tasks:${userId}`, taskId)
-      await redis.hset(taskId, taskAPI)
+      // prettier-ignore
+      const transaction = 
+          redis
+            .multi()
+            .rpush(`tasks:${userId}`, taskId)
+            .hset(taskId, taskAPI)
+            .exec()
+
+      const operation = await performOperation(() => transaction)
+      if (!operation.success) return res.status(500).json(getFailedJson("task", req))
 
       return res.status(201).json(taskAPI)
     } catch (error) {
@@ -49,17 +61,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!auth.isAuth) return res.status(401).json(auth.responseJson)
 
       const { userId } = auth
-      const { tasks, failedToGetTasks, errors } = await getTasks(redis, userId)
+      const tasksFetch = await getTasks(redis, userId)
 
-      if (failedToGetTasks) {
-        return res.status(400).json({
-          message: "Failed to retrieve tasks.",
-          tasks,
-          errors,
-        })
-      }
+      const { operationSuccess } = validateOperation(tasksFetch)
+      if (!operationSuccess) return res.status(500).json(getFailedJson("tasks", req))
 
-      return res.status(200).json(tasks)
+      return res.status(200).json(tasksFetch.tasks)
     } catch (error) {
       return res.status(400).json({
         message: "Failed to retrieve tasks.",

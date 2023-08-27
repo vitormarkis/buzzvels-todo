@@ -1,22 +1,34 @@
 import { nanoid } from "nanoid"
+import { NextApiRequest } from "next"
 import { z } from "zod"
+
+import { redis } from "@/lib/redis"
 
 import { mock_Todos } from "@/__mocks__/api/task"
 import handler from "@/pages/api/task"
 import { GetTasksResponse } from "@/utils/api/getTasks"
 import { mockRequest } from "@/utils/units/mockRequest"
+import { validateOperation } from "@/utils/validateOperation"
 
 jest.useFakeTimers().setSystemTime(new Date("2023-01-01"))
-
 jest.mock("@/lib/redis", () => ({
   redis: {
-    rpush: jest.fn(),
-    hset: jest.fn(),
+    multi: jest.fn(() => ({
+      rpush: jest.fn(() => ({
+        hset: jest.fn(() => ({
+          exec: jest.fn(async () => Promise.resolve()),
+        })),
+      })),
+    })),
   },
 }))
 
 jest.mock("nanoid", () => ({
   nanoid: jest.fn(() => "19191919"),
+}))
+
+jest.mock("@/utils/validateOperation", () => ({
+  validateOperation: jest.fn(() => ({ operationSuccess: true })),
 }))
 
 jest.mock("@/utils/api/getTasks", () => ({
@@ -64,8 +76,8 @@ describe("/api/tasks", () => {
       const response = { json: jsonResponse, status: responseStatus } as any
       const request = createTaskRequest(taskData) as any
       await handler(request, response)
-      expect(responseStatus).toHaveBeenCalledWith(expectedResponse.status)
       expect(jsonResponse).toHaveBeenCalledWith(expect.objectContaining(expectedResponse.body))
+      expect(responseStatus).toHaveBeenCalledWith(expectedResponse.status)
     }
 
     test("[201] should create and return a new task", async () => {
@@ -138,6 +150,31 @@ describe("/api/tasks", () => {
       }
       await handleBusinessRuleTest(taskDataWithNullEndDate, expectedResponse)
     })
+
+    test("[500] should reject when failed to delete on database", async () => {
+      // @ts-ignore
+      jest.spyOn(redis, "multi").mockImplementation(() => ({
+        rpush: jest.fn(() => ({
+          hset: jest.fn(() => ({
+            exec: jest.fn(() => Promise.reject()),
+          })),
+        })),
+      }))
+
+      const taskDataWithNullEndDate = {
+        endDate: null,
+        task: "task number",
+      }
+      const response = { json: jsonResponse, status: responseStatus } as any
+      const request = createTaskRequest(taskDataWithNullEndDate) as any
+      await handler(request, response)
+      expect(jsonResponse).toHaveBeenCalledWith({
+        message: "Operation failed [POST]:task, something wrong on database!",
+      })
+      expect(responseStatus).toHaveBeenCalledWith(500)
+
+      jest.spyOn(redis, "multi").mockRestore()
+    })
   })
 
   describe("GET method", () => {
@@ -146,7 +183,7 @@ describe("/api/tasks", () => {
     const createTaskRequest = (taskData?: Record<string, any>) =>
       mockRequest(mockAuthorizationHeader(validUserId), "GET", taskData)
 
-    test("[201] fetch tasks properly", async () => {
+    test("[200] fetch tasks properly", async () => {
       const response = { json: jsonResponse, status: responseStatus } as any
       const request = createTaskRequest() as any
       await handler(request, response)
@@ -166,6 +203,18 @@ describe("/api/tasks", () => {
       expect(responseStatus).toHaveBeenCalledWith(200)
       if (!apiResponseParse.success) console.log(apiResponseParse.error)
       expect(apiResponseParse.success).toBeTruthy()
+    })
+
+    test("[500] should reject when failed to fetch on database", async () => {
+      ;(validateOperation as jest.Mock).mockImplementation(() => ({ operationSuccess: false }))
+
+      const response = { json: jsonResponse, status: responseStatus } as any
+      const request = createTaskRequest() as any
+      await handler(request, response)
+      expect(jsonResponse).toHaveBeenCalledWith({
+        message: `Operation failed [GET]:tasks, something wrong on database!`,
+      })
+      expect(responseStatus).toHaveBeenCalledWith(500)
     })
   })
 })

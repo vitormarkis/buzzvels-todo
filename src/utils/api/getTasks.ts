@@ -1,3 +1,4 @@
+import { NextApiRequest } from "next"
 import { z } from "zod"
 
 import { Redis } from "@upstash/redis"
@@ -12,37 +13,46 @@ export interface GetTasksResponse {
 }
 
 export async function getTasks(redis: Redis, userId: string): Promise<GetTasksResponse> {
-  let errors = []
-  const [tasksIds, subtasksIds] = await Promise.all([
-    redis.lrange(`tasks:${userId}`, 0, -1),
-    redis.lrange(`subtasks:${userId}`, 0, -1),
-  ])
+  let errors: unknown[] = []
 
-  const [unparsedTasks, unparsedSubtasks] = await Promise.all([
-    Promise.all(tasksIds.map(taskId => redis.hgetall(taskId))),
-    Promise.all(subtasksIds.map(subtaskId => redis.hgetall(subtaskId))),
-  ])
+  try {
+    const [tasksIds, subtasksIds] = await Promise.all([
+      redis.lrange(`tasks:${userId}`, 0, -1),
+      redis.lrange(`subtasks:${userId}`, 0, -1),
+    ])
 
-  const tasksSafeParse = z.array(taskSchemaAPI).safeParse(unparsedTasks)
-  const subtasksSafeParse = z.array(subtaskSchemaAPI).safeParse(unparsedSubtasks)
+    const [unparsedTasks, unparsedSubtasks] = await Promise.all([
+      Promise.all(tasksIds.map(taskId => redis.hgetall(taskId))),
+      Promise.all(subtasksIds.map(subtaskId => redis.hgetall(subtaskId))),
+    ])
 
-  const entitiesParsedSuccessfully = [tasksSafeParse, subtasksSafeParse].every(
-    result => result.success
-  )
+    const tasksSafeParse = z.array(taskSchemaAPI).safeParse(unparsedTasks)
+    const subtasksSafeParse = z.array(subtaskSchemaAPI).safeParse(unparsedSubtasks)
 
-  if (!tasksSafeParse.success) errors.push({ tasks: unparsedTasks, error: tasksSafeParse.error })
-  if (!subtasksSafeParse.success)
-    errors.push({ subtasks: unparsedSubtasks, error: subtasksSafeParse.error })
+    const entitiesParsedSuccessfully = [tasksSafeParse, subtasksSafeParse].every(
+      result => result.success
+    )
 
-  const tasksRaw = tasksSafeParse.success ? tasksSafeParse.data : []
-  const subtasksRaw = subtasksSafeParse.success ? subtasksSafeParse.data : []
+    if (!tasksSafeParse.success) errors.push({ tasks: unparsedTasks, error: tasksSafeParse.error })
+    if (!subtasksSafeParse.success)
+      errors.push({ subtasks: unparsedSubtasks, error: subtasksSafeParse.error })
 
-  const tasks = mergeSubtasksToTasks(tasksRaw, subtasksRaw)
+    const tasksRaw = tasksSafeParse.success ? tasksSafeParse.data : []
+    const subtasksRaw = subtasksSafeParse.success ? subtasksSafeParse.data : []
 
-  return {
-    failedToGetTasks: !entitiesParsedSuccessfully,
-    tasks,
-    errors,
+    const tasks = mergeSubtasksToTasks(tasksRaw, subtasksRaw)
+
+    return {
+      failedToGetTasks: !entitiesParsedSuccessfully,
+      tasks,
+      errors,
+    }
+  } catch (error) {
+    return {
+      failedToGetTasks: true,
+      tasks: [],
+      errors: [error],
+    }
   }
 }
 

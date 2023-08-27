@@ -1,14 +1,30 @@
+import { redis } from "@/lib/redis"
+
 import handler from "@/pages/api/subtask"
+import { performOperation } from "@/utils/performTransaction"
 import { mockRequest } from "@/utils/units/mockRequest"
+
+jest.mock("@/utils/performTransaction", () => ({
+  performOperation: jest.fn(() => ({
+    success: true,
+  })),
+}))
 
 jest.useFakeTimers().setSystemTime(new Date("2023-01-01"))
 
 jest.mock("@/lib/redis", () => ({
   redis: {
-    del: jest.fn(),
-    rpush: jest.fn(),
-    hset: jest.fn(),
-    lrem: jest.fn(),
+    del: jest.fn(() => 0),
+    rpush: jest.fn(() => 0),
+    hset: jest.fn(() => 0),
+    lrem: jest.fn(() => 0),
+    multi: jest.fn(() => ({
+      rpush: jest.fn(() => ({
+        hset: jest.fn(() => ({
+          exec: jest.fn(() => Promise.resolve()),
+        })),
+      })),
+    })),
   },
 }))
 
@@ -54,7 +70,7 @@ describe("/api/subtask", () => {
       expect(jsonResponse).toHaveBeenCalledWith(expect.objectContaining(expectedResponse.body))
     }
 
-    test.only("[201] should create and return a new task", async () => {
+    test("[201] should create and return a new task", async () => {
       const subtaskData = {
         isDone: false,
         task: "review something",
@@ -73,7 +89,7 @@ describe("/api/subtask", () => {
       await handleBusinessRuleTest(subtaskData, expectedResponse)
     })
 
-    test.only("[400] should reject when bad input", async () => {
+    test("[400] should reject when bad input", async () => {
       const invalidSubtaskData = {
         task: "",
       }
@@ -84,7 +100,7 @@ describe("/api/subtask", () => {
       await handleBusinessRuleTest(invalidSubtaskData, expectedResponse)
     })
 
-    test.only("[400] should reject when no body is provided", async () => {
+    test("[400] should reject when no body is provided", async () => {
       const emptysubtaskData = {}
       const expectedResponse = {
         status: 400,
@@ -93,7 +109,7 @@ describe("/api/subtask", () => {
       await handleBusinessRuleTest(emptysubtaskData, expectedResponse)
     })
 
-    test.only("[400] should reject when more payload than needed is provided", async () => {
+    test("[400] should reject when more payload than needed is provided", async () => {
       const excessivePayload = {
         createdAt: new Date().getTime(),
         id: "subtask_19191919",
@@ -109,7 +125,7 @@ describe("/api/subtask", () => {
       await handleBusinessRuleTest(excessivePayload, expectedResponse)
     })
 
-    test.only("[400] should reject when text is empty", async () => {
+    test("[400] should reject when text is empty", async () => {
       const subtaskDataEmptyText = {
         isDone: false,
         task: "",
@@ -122,7 +138,7 @@ describe("/api/subtask", () => {
       await handleBusinessRuleTest(subtaskDataEmptyText, expectedResponse)
     })
 
-    test.only("[201] should create without isDone property being sent on payload", async () => {
+    test("[201] should create without isDone property being sent on payload", async () => {
       const subtaskData = {
         task: "task data",
         taskId: "taskid_2020",
@@ -139,6 +155,24 @@ describe("/api/subtask", () => {
       }
       await handleBusinessRuleTest(subtaskData, expectedResponse)
     })
+
+    test("[500] should reject when failed to delete on database", async () => {
+      ;(performOperation as jest.Mock).mockImplementationOnce(() => ({
+        success: false,
+      }))
+
+      const subtaskData = {
+        task: "task data",
+        taskId: "taskid_2020",
+      }
+      const expectedResponse = {
+        status: 500,
+        body: {
+          message: "Operation failed [POST]:subtask, something wrong on database!",
+        },
+      }
+      await handleBusinessRuleTest(subtaskData, expectedResponse)
+    })
   })
 
   describe("DELETE method", () => {
@@ -147,7 +181,7 @@ describe("/api/subtask", () => {
     const createTaskRequest = (subtaskData?: Record<string, any>) =>
       mockRequest(mockAuthorizationHeader(validUserId), "DELETE", subtaskData)
 
-    test.only("[200] delete", async () => {
+    test("[200] should delete subtask when valid body is provided", async () => {
       const response = { json: jsonResponse, status: responseStatus } as any
       const request = createTaskRequest({
         subtaskId: "whatever-id",
@@ -156,6 +190,30 @@ describe("/api/subtask", () => {
       expect(responseStatus).toHaveBeenCalledWith(200)
       expect(jsonResponse).toHaveBeenCalledWith({
         message: "Subtask deleted with success!",
+      })
+    })
+
+    test("[400] should reject when invalid body is provided", async () => {
+      const response = { json: jsonResponse, status: responseStatus } as any
+      const request = createTaskRequest({
+        other_prop: false,
+      }) as any
+      await handler(request, response)
+      expect(responseStatus).toHaveBeenCalledWith(400)
+      expect(jsonResponse).toHaveBeenCalledWith(expect.objectContaining({ message: "Bad input." }))
+    })
+
+    test("[500] should reject when failed to delete on database", async () => {
+      ;(redis.del as jest.Mock).mockImplementation(async () => 1)
+
+      const response = { json: jsonResponse, status: responseStatus } as any
+      const request = createTaskRequest({
+        subtaskId: "whatever-id",
+      }) as any
+      await handler(request, response)
+      expect(responseStatus).toHaveBeenCalledWith(500)
+      expect(jsonResponse).toHaveBeenCalledWith({
+        message: "Operation failed [DELETE]:subtask, something wrong on database!",
       })
     })
   })

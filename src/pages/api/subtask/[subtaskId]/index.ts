@@ -1,12 +1,21 @@
 import { NextApiRequest, NextApiResponse } from "next"
+import { z } from "zod"
 
 import { redis } from "@/lib/redis"
 
+import { subtaskSchema } from "@/fetchs/tasks/schema"
 import {
   MutateChangeSubtaskTextInput,
   mutateChangeSubtaskTextSchema,
 } from "@/schemas/subtask/change"
+import { bodyParser } from "@/utils/bodyParser"
 import { getAuth } from "@/utils/getAuth"
+import { getFailedJson } from "@/utils/getFailedJson"
+import { performOperation } from "@/utils/performTransaction"
+import { queryParser } from "@/utils/queryParser"
+
+const querySchema = z.object({ subtaskId: z.string() })
+const bodySchema = mutateChangeSubtaskTextSchema.pick({ text: true })
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "DELETE") {
@@ -15,21 +24,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!auth.isAuth) return res.status(401).json(auth.responseJson)
 
       const { userId } = auth
-      const { subtaskId } = req.query as { subtaskId: string }
+      const queryParsed = queryParser(req, querySchema)
+      if (!queryParsed.parse.success) return res.status(400).json(queryParsed.json)
 
-      const operationResponses = await Promise.all([
-        redis.del(subtaskId),
-        redis.lrem(`subtasks:${userId}`, 1, subtaskId),
-      ])
+      const { subtaskId } = queryParsed.parse.data
 
-      const allOperationsSuccess = operationResponses.every(n => n === 0)
+      const transaction = redis
+        .multi()
+        .del(subtaskId)
+        .lrem(`subtasks:${userId}`, 1, subtaskId)
+        .exec()
 
-      if (allOperationsSuccess) {
-        throw new Error("Failed to delete subtask.")
-      }
+      const operation = await performOperation(() => transaction)
+      if (!operation.success) return res.status(500).json(getFailedJson("subtask", req))
 
       return res.status(200).json({
-        message: "Delete subtask successfully.",
+        message: "Subtask deleted with success!",
       })
     } catch (error) {
       return res.status(400).json({
@@ -44,19 +54,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const auth = getAuth(req)
       if (!auth.isAuth) return res.status(401).json(auth.responseJson)
 
-      const query = req.query as { subtaskId: string }
-      const body = JSON.parse(req.body)
+      const queryParsed = queryParser(req, querySchema)
+      if (!queryParsed.parse.success) return res.status(400).json(queryParsed.json)
 
-      const { subtaskId, text } = mutateChangeSubtaskTextSchema.parse({
-        subtaskId: query.subtaskId,
-        text: body.text,
-      } satisfies MutateChangeSubtaskTextInput)
+      const bodyParsed = bodyParser(req, bodySchema)
+      if (!bodyParsed.parse.success) return res.status(400).json(bodyParsed.json)
 
-      const successResponse = await redis.hset(subtaskId, { task: text })
+      const { subtaskId } = queryParsed.parse.data
+      const { text } = bodyParsed.parse.data
 
-      if (successResponse !== 0) {
-        throw new Error("Failed to change the subtask text.")
-      }
+      const transaction = redis.hset(subtaskId, { task: text })
+
+      const operation = await performOperation(() => transaction)
+      if (!operation.success) return res.status(500).json(getFailedJson("subtask", req))
 
       return res.status(200).json({
         message: "Change subtask text successfully.",
