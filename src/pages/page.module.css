@@ -4,7 +4,7 @@
   transform: translate(-50%, -70%);
   filter: blur(90px);
   z-index: -1;
-  background: rgb(49, 49, 49);
+  background: rgb(0 28 171 / 32%);
   width: 320px;
   height: 98px;
 }

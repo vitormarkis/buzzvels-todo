@@ -4,15 +4,11 @@
 
 .bg-special-slate {
   background:
-    linear-gradient(
-        45deg,
-        rgba(var(--background) / 1),
-        rgba(var(--background-shadow) / 1),
-        rgba(var(--background) / 1)
-      )
-      padding-box,
-    linear-gradient(309deg, rgba(var(--color-strong) / 0.1), rgba(var(--color-strong) / 0.2))
-      border-box;
+    linear-gradient(45deg,
+      rgba(var(--background) / 1),
+      rgba(var(--background-shadow) / 1),
+      rgba(var(--background) / 1)) padding-box,
+    linear-gradient(309deg, rgba(var(--color-strong) / 0.1), rgba(var(--color-strong) / 0.2)) border-box;
 }
 
 @layer base {
@@ -259,26 +255,26 @@
 @layer base {
   :root {
     --white: 255 255 255;
-    --white-100: 247 247 247;
-    --white-200: 234 234 234;
-    --white-300: 221 221 221;
-    --white-400: 207 207 207;
-    --white-500: 194 194 194;
-    --white-600: 181 181 181;
-    --white-700: 168 168 168;
-    --white-800: 154 154 154;
-    --white-900: 141 141 141;
+    --white-100: 231 233 243;
+    --white-200: 218 220 231;
+    --white-300: 205 207 218;
+    --white-400: 192 194 206;
+    --white-500: 179 181 193;
+    --white-600: 165 168 181;
+    --white-700: 152 155 168;
+    --white-800: 139 142 156;
+    --white-900: 126 129 143;
 
-    --black: 0 0 0;
-    --black-100: 14 14 14;
-    --black-200: 28 28 28;
-    --black-300: 43 43 43;
-    --black-400: 57 57 57;
-    --black-500: 71 71 71;
-    --black-600: 85 85 85;
-    --black-700: 100 100 100;
-    --black-800: 114 114 114;
-    --black-900: 128 128 128;
+    --black: 15 19 37;
+    --black-100: 26 30 47;
+    --black-200: 37 41 58;
+    --black-300: 48 51 68;
+    --black-400: 59 62 79;
+    --black-500: 69 73 89;
+    --black-600: 80 84 100;
+    --black-700: 91 94 110;
+    --black-800: 102 105 121;
+    --black-900: 113 116 131;
 
     --electric-violet-50: 242 243 255;
     --electric-violet-100: 231 231 255;
