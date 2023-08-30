@@ -140,6 +140,22 @@
     --symbol: var(--white);
   }
 
+  .__positive {
+    --background: var(--positive-color-500);
+    --background-shadow: var(--positive-color-600);
+    --heading: var(--positive-color-100);
+    --ring: var(--positive-color-700);
+    --symbol: var(--white);
+  }
+
+  .__warn {
+    --background: var(--warn-color-500);
+    --background-shadow: var(--warn-color-600);
+    --heading: var(--background);
+    --ring: var(--warn-color-700);
+    --symbol: var(--black);
+  }
+
   .dark .__first {
     --background: var(--black);
     --background-shadow: var(--black-200);
@@ -299,6 +315,32 @@
     --crimson-800: 157 23 23;
     --crimson-900: 130 26 26;
     --crimson-950: 71 8 8;
+
+    --positive-color-50: 242 251 242;
+    --positive-color-100: 225 248 224;
+    --positive-color-200: 196 240 194;
+    --positive-color-300: 148 227 146;
+    --positive-color-400: 93 205 91;
+    --positive-color-500: 57 185 55;
+    --positive-color-600: 40 147 38;
+    --positive-color-700: 34 116 33;
+    --positive-color-800: 31 92 31;
+    --positive-color-900: 27 76 28;
+    --positive-color-950: 10 41 11;
+
+    --warn-color-50: 254 253 232;
+    --warn-color-100: 255 254 194;
+    --warn-color-200: 255 250 135;
+    --warn-color-300: 255 240 67;
+    --warn-color-400: 255 225 31;
+    --warn-color-500: 239 198 3;
+    --warn-color-600: 206 154 0;
+    --warn-color-700: 164 110 4;
+    --warn-color-800: 136 85 11;
+    --warn-color-900: 115 70 16;
+    --warn-color-950: 67 36 5;
+
+
   }
 
   body {

@@ -2,7 +2,9 @@ import React from "react"
 
 import { cn } from "@/lib/utils"
 
+import { IconCalendar } from "@/components/icons/IconCalendar"
 import { IconTrash } from "@/components/icons/IconTrash"
+import { ToDoAddEndDateAlertDialog } from "@/components/molecules/alert-dialog-to-do-add-end-date/ToDoAddEndDateAlertDialog"
 import { ToDoDeleteAlertDialog } from "@/components/molecules/alert-dialog-to-do-delete/ToDoDeleteAlertDialog"
 import { MutateDeleteTask } from "@/components/molecules/to-do/ToDo"
 import {
@@ -56,6 +58,20 @@ export const ToDoOptionsDropdown = React.forwardRef<
             <span>Delete</span>
           </Button>
         </ToDoDeleteAlertDialog>
+        <ToDoAddEndDateAlertDialog
+          task={task}
+          // handleAddEndDate={handleAddEndDate}>
+          handleAddEndDate={(...addEndDate) => console.log({ addEndDate })}>
+          <Button
+            variant="ghost"
+            className="h-9 px-2 py-1.5 cursor-default justify-start w-full font-normal rounded-sm">
+            <IconCalendar
+              size={16}
+              style={{ color: "inherit" }}
+            />
+            <span>Add end date</span>
+          </Button>
+        </ToDoAddEndDateAlertDialog>
       </DropdownMenuContent>
     </DropdownMenu>
   )
