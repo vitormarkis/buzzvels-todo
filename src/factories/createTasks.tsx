@@ -32,19 +32,22 @@ const tasksSorterMethods: TaskSorter = {
       : a.task.toLowerCase() < b.task.toLowerCase()
       ? 1
       : 0,
+  "isDone-asc": (a: TaskSession, b: TaskSession) => Number(a.isDone) - Number(b.isDone),
+  "isDone-desc": (a: TaskSession, b: TaskSession) => Number(b.isDone) - Number(a.isDone),
 }
 
 export type SortMethodName = keyof typeof tasksSorterMethods
 
 export function useTasks(rawTasks: TaskSession[] | undefined, options: TasksOptions) {
   // export function useTasks(rawTasks: TaskSession[] | undefined, sortMethodName: SortMethodName) {
-  const { date, text } = options.sortCurrent
+  const { date, text, isDone } = options.sortCurrent
   const { lastSort } = useTasksListState()
   let tasks: TaskSession[] | null = rawTasks ?? null
   if (!tasks) return { tasks: null }
 
   if (date && date === lastSort) tasks = tasks.sort(tasksSorterMethods[date])
   if (text && text === lastSort) tasks = tasks.sort(tasksSorterMethods[text])
+  if (isDone && isDone === lastSort) tasks = tasks.sort(tasksSorterMethods[isDone])
 
   return { tasks }
 }

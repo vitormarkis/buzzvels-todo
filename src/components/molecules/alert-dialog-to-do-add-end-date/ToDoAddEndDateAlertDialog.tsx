@@ -54,7 +54,6 @@ export const ToDoAddEndDateAlertDialog = React.forwardRef<
 >(function ToDoAddEndDateAlertDialogComponent({ children, ...props }, ref) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const { task, addEndDateMutate } = useContext(TaskContext)
-  const { setBackupTask } = useTasksContext()
   const { setIsDropdownOpen } = useContext(ToDoOptionsDropdownContext)
 
   const methods = useForm<Pick<MutateAddEndDateTaskInput["payload"], "endDate">>({

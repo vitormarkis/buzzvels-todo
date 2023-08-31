@@ -2,7 +2,7 @@ import React from "react"
 
 import { cn } from "@/lib/utils"
 
-import { SortDate, SortText, useTasksListState } from "@/hooks/useTasksListState"
+import { SortDate, SortIsDone, SortText, useTasksListState } from "@/hooks/useTasksListState"
 
 export type SortingBarProps = React.ComponentPropsWithoutRef<"div"> & {}
 
@@ -20,13 +20,20 @@ const textSortingTitles: Record<NonNullable<SortText> | "default", string> = {
   default: "Not filtering",
 }
 
+const isDoneSortingTitles: Record<NonNullable<SortIsDone> | "default", string> = {
+  "isDone-asc": "To do first",
+  "isDone-desc": "Done first",
+  default: "Not filtering",
+}
+
 export const SortingBar = React.forwardRef<React.ElementRef<"div">, SortingBarProps>(
   function SortingBarComponent({ ...props }, ref) {
     const { toggleSort, sortCurrent } = useTasksListState()
-    const { date, text } = sortCurrent
+    const { date, text, isDone } = sortCurrent
 
     const dateSortingTitle = dateSortingTitles[date ?? "default"]
     const textSortingTitle = textSortingTitles[text ?? "default"]
+    const isDoneSortingTitle = isDoneSortingTitles[isDone ?? "default"]
 
     return (
       <div
@@ -60,6 +67,16 @@ export const SortingBar = React.forwardRef<React.ElementRef<"div">, SortingBarPr
               )}
               onClick={() => toggleSort("text")}>
               <span>Text</span>
+            </button>
+            <button
+              title={isDoneSortingTitle}
+              data-active={!!isDone}
+              className={cn(
+                "__first text-xs bg-transparent h-6 px-2 rounded-lg text-color-soft transition",
+                "data-[active=true]:bg-background hover:text-color-strong"
+              )}
+              onClick={() => toggleSort("isDone")}>
+              <span>Done</span>
             </button>
           </div>
         </div>

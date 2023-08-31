@@ -25,8 +25,6 @@ export const TasksContextContext = createContext({} as ITasksContextContext)
 export function TasksContextProvider(props: { children: React.ReactNode }) {
   const [backupTask, setBackupTask] = useState<TaskSession | null>(null)
 
-  console.log({ backupTask })
-
   const { userId } = useAuth()
   const { headers } = useUserInfo()
   const { sortCurrent } = useTasksListState()

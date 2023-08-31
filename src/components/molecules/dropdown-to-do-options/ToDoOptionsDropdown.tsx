@@ -2,6 +2,9 @@ import React, { createContext, useContext, useState } from "react"
 
 import { cn } from "@/lib/utils"
 
+import { ToDoRemoveEndDateConfirm } from "@/components/atoms/to-do-remove-end-date-confirm/ToDoRemoveEndDateConfirm"
+import { IconX } from "@/components/icons"
+import { IconBackspace } from "@/components/icons/IconBackspace"
 import { IconCalendar } from "@/components/icons/IconCalendar"
 import { IconTrash } from "@/components/icons/IconTrash"
 import { ToDoAddEndDateAlertDialog } from "@/components/molecules/alert-dialog-to-do-add-end-date/ToDoAddEndDateAlertDialog"
@@ -73,6 +76,33 @@ export const ToDoOptionsDropdown = React.forwardRef<
             <span>{task.endDate ? "Change end date" : "Add end date"}</span>
           </Button>
         </ToDoAddEndDateAlertDialog>
+        {task.endDate && (
+          <ToDoRemoveEndDateConfirm
+            clickableElement={({ stage }) => (
+              <Button
+                variant="ghost"
+                onClick={stage}
+                className="h-9 px-2 py-1.5 cursor-default justify-start w-full font-normal rounded-sm">
+                <IconBackspace
+                  size={16}
+                  style={{ color: "inherit" }}
+                />
+                <span>Remove end date</span>
+              </Button>
+            )}
+            confirmElement={({ action }) => (
+              <Button
+                onClick={action}
+                className="__block h-9 px-2 py-1.5 cursor-default justify-start w-full font-normal rounded-sm">
+                <IconX
+                  size={16}
+                  style={{ color: "inherit" }}
+                />
+                <span>Confirm</span>
+              </Button>
+            )}
+          />
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

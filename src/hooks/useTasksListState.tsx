@@ -4,7 +4,7 @@ export interface ITasksListStateContext {
   toggleSort: (key: SortMethods) => void
   sort: Sort
   sortCurrent: SortCurrent
-  lastSort: SortText | SortDate | null
+  lastSort: SortText | SortDate | SortIsDone | null
   resetSort: () => void
   setSortState<T extends SortMethods>(
     props: [sortingMethod: T, sortingValue: Sort[T][number]]
@@ -16,6 +16,7 @@ export const TasksListStateContext = createContext({} as ITasksListStateContext)
 
 const sortValues = {
   text: [null, "text-desc", "text-asc"],
+  isDone: [null, "isDone-desc", "isDone-asc"],
   date: [null, "createdAt-desc", "createdAt-asc", "expiresAt-desc", "expiresAt-asc"],
 } as const
 
@@ -23,7 +24,11 @@ export type Sort = typeof sortValues
 export type SortMethods = keyof typeof sortValues
 export type SortText = Sort["text"][number]
 export type SortDate = Sort["date"][number]
-export type SortAllKeysValid = NonNullable<SortText> | NonNullable<SortDate>
+export type SortIsDone = Sort["isDone"][number]
+export type SortAllKeysValid =
+  | NonNullable<SortText>
+  | NonNullable<SortDate>
+  | NonNullable<SortIsDone>
 export type SortAllKeys = SortAllKeysValid | null
 export type SortCurrent = {
   [K in SortMethods]: Sort[K][number]
@@ -68,6 +73,7 @@ export function TasksListStateProvider(props: { children: React.ReactNode }) {
       return {
         date: sort["date"][0],
         text: sort["text"][0],
+        isDone: sort["isDone"][0],
       }
     },
     [sort]
