@@ -1,5 +1,5 @@
 import { headers } from "next/headers"
-import React, { createContext, useContext } from "react"
+import React, { createContext, useContext, useState } from "react"
 
 import { useAuth } from "@clerk/nextjs"
 import { UseQueryResult, useQuery } from "@tanstack/react-query"
@@ -16,11 +16,17 @@ import { TaskSession } from "@/fetchs/tasks/schema"
 export interface ITasksContextContext {
   useTasksQuery: UseQueryResult<TaskSession[], unknown>
   tasks: TaskSession[] | null
+  backupTask: TaskSession | null
+  setBackupTask: React.Dispatch<React.SetStateAction<TaskSession | null>>
 }
 
 export const TasksContextContext = createContext({} as ITasksContextContext)
 
 export function TasksContextProvider(props: { children: React.ReactNode }) {
+  const [backupTask, setBackupTask] = useState<TaskSession | null>(null)
+
+  console.log({ backupTask })
+
   const { userId } = useAuth()
   const { headers } = useUserInfo()
   const { sortCurrent } = useTasksListState()
@@ -55,6 +61,8 @@ export function TasksContextProvider(props: { children: React.ReactNode }) {
       value={{
         useTasksQuery,
         tasks,
+        backupTask,
+        setBackupTask,
       }}>
       {props.children}
     </TasksContextContext.Provider>

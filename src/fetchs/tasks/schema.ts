@@ -20,9 +20,15 @@ export const subtaskSchema = z
   })
   .strict()
 
+export const taskSessionSchema = taskSchemaAPI
+  .merge(
+    z.object({
+      subtasks: z.array(subtaskSchema),
+    })
+  )
+  .strict()
+
 export type TaskAPI = z.output<typeof taskSchemaAPI>
 export type SubtaskSession = z.output<typeof subtaskSchema>
 export type SubtaskAPI = z.output<typeof subtaskSchema>
-export type TaskSession = TaskAPI & {
-  subtasks: SubtaskSession[]
-}
+export type TaskSession = z.infer<typeof taskSessionSchema>

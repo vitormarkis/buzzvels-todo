@@ -1,7 +1,7 @@
 import { MutateAddEndDateTask } from "@/schemas/task/add-end-date"
 
 export async function addEndDateTaskMutationFunction(
-  { endDate, taskId }: MutateAddEndDateTask,
+  { endDate, taskId }: MutateAddEndDateTask["payload"],
   headers: Headers
 ) {
   const response = await fetch(`/api/task/${taskId}/endDate`, {

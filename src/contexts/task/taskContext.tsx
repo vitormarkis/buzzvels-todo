@@ -7,6 +7,7 @@ import { toast } from "@/components/ui/use-toast"
 
 import { createQueryCache } from "@/factories/createQueryCache"
 
+import { useTasksContext } from "@/contexts/tasks/tasksContext"
 import { useUserInfo } from "@/contexts/user-info/userInfoContext"
 import { TaskSession } from "@/fetchs/tasks/schema"
 import { MutateAddEndDateTask, MutateAddEndDateTaskInput } from "@/schemas/task/add-end-date"
@@ -24,12 +25,19 @@ export function TaskProvider(props: { children: React.ReactNode; task: TaskSessi
   const { userId } = useAuth()
   const queryClient = useQueryClient()
   const QueryCache = createQueryCache(queryClient, userId)
+  const { setBackupTask, backupTask } = useTasksContext()
 
   const { mutate: addEndDateMutate } = useMutation<{}, {}, MutateAddEndDateTask>({
-    mutationFn: payload => addEndDateTaskMutationFunction(payload, headers),
-    onMutate: ({ taskId, endDate }) =>
-      QueryCache.tasks.patch(taskId, currentTask => ({ ...currentTask, endDate })),
-    onError: () => {
+    mutationFn: ({ payload }) => addEndDateTaskMutationFunction(payload, headers),
+    onMutate: ({ payload: { endDate, taskId }, task }) => {
+      setBackupTask(task)
+      QueryCache.tasks.patch(taskId, currentTask => ({
+        ...currentTask,
+        endDate: endDate?.getTime() ?? null,
+      }))
+    },
+    onError: ({}, { payload: { taskId } }) => {
+      if (backupTask) QueryCache.tasks.put(taskId, backupTask)
       toast({
         variant: "destructive",
         title: "Failed to add an end date to this task",

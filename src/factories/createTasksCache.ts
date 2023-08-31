@@ -2,6 +2,7 @@ import { QueryClient } from "@tanstack/react-query"
 
 import { createQueryCacheGetters } from "@/factories/createQueryCacheGetters"
 
+import { useTasksContext } from "@/contexts/tasks/tasksContext"
 import { TaskSession } from "@/fetchs/tasks/schema"
 
 type UserID = string | null | undefined
@@ -83,6 +84,13 @@ export function createTasksCache(queryClient: QueryClient, userId?: UserID) {
     set(newTasks)
   }
 
+  const put = (taskId: string, task: TaskSession) => {
+    const { tasks } = CacheGetters.tasks.get()
+
+    const newTasks = tasks.map(currentTask => (currentTask.id === taskId ? task : currentTask))
+    set(newTasks)
+  }
+
   return {
     set,
     toggle,
@@ -91,5 +99,6 @@ export function createTasksCache(queryClient: QueryClient, userId?: UserID) {
     sort,
     add,
     patch,
+    put,
   }
 }

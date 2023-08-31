@@ -35,6 +35,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 import { TaskContext } from "@/contexts/task/taskContext"
+import { useTasksContext } from "@/contexts/tasks/tasksContext"
 import { TaskSession } from "@/fetchs/tasks/schema"
 import {
   MutateAddEndDateTaskInput,
@@ -53,26 +54,30 @@ export const ToDoAddEndDateAlertDialog = React.forwardRef<
 >(function ToDoAddEndDateAlertDialogComponent({ children, ...props }, ref) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const { task, addEndDateMutate } = useContext(TaskContext)
+  const { setBackupTask } = useTasksContext()
   const { setIsDropdownOpen } = useContext(ToDoOptionsDropdownContext)
 
-  const methods = useForm<Pick<MutateAddEndDateTaskInput, "endDate">>({
+  const methods = useForm<Pick<MutateAddEndDateTaskInput["payload"], "endDate">>({
     defaultValues: {
       endDate: task.endDate ? new Date(task.endDate) : null,
     },
-    resolver: zodResolver(mutateAddEndDateTaskSchema.pick({ endDate: true })),
+    resolver: zodResolver(mutateAddEndDateTaskSchema.shape.payload.pick({ endDate: true })),
     mode: "onSubmit",
   })
 
   const submitHandler: SubmitHandler<
-    Pick<MutateAddEndDateTaskInput, "endDate">
+    Pick<MutateAddEndDateTaskInput["payload"], "endDate">
   > = async formData => {
-    const { taskId, endDate } = mutateAddEndDateTaskTransform({
-      endDate: formData.endDate,
-      taskId: task.id,
+    const { payload } = mutateAddEndDateTaskTransform({
+      payload: {
+        endDate: formData.endDate,
+        taskId: task.id,
+      },
+      task,
     })
     setIsModalOpen(false)
     setIsDropdownOpen(false)
-    addEndDateMutate({ taskId, endDate })
+    addEndDateMutate({ payload, task })
   }
 
   return (
