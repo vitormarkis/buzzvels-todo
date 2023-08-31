@@ -109,7 +109,7 @@ export const SubtaskDeleteAlertDialog = React.forwardRef<
                   taskId: subtask.taskId,
                 })
               }
-              className="__block">
+              className="__block text-white">
               <IconTrash
                 size={16}
                 style={{ color: "inherit" }}

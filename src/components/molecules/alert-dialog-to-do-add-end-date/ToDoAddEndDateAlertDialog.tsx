@@ -7,9 +7,20 @@ import { zodResolver } from "@hookform/resolvers/zod"
 
 import { cn } from "@/lib/utils"
 
+import { IconCalendar } from "@/components/icons/IconCalendar"
 import { IconTrash } from "@/components/icons/IconTrash"
+import { ToDoOptionsDropdownContext } from "@/components/molecules/dropdown-to-do-options/ToDoOptionsDropdown"
 import { MutateDeleteTask } from "@/components/molecules/to-do/ToDo"
-import { AlertDialog, AlertDialogContent, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogOverlay,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
@@ -42,10 +53,11 @@ export const ToDoAddEndDateAlertDialog = React.forwardRef<
 >(function ToDoAddEndDateAlertDialogComponent({ children, ...props }, ref) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const { task, addEndDateMutate } = useContext(TaskContext)
+  const { setIsDropdownOpen } = useContext(ToDoOptionsDropdownContext)
 
   const methods = useForm<Pick<MutateAddEndDateTaskInput, "endDate">>({
     defaultValues: {
-      endDate: null,
+      endDate: task.endDate ? new Date(task.endDate) : null,
     },
     resolver: zodResolver(mutateAddEndDateTaskSchema.pick({ endDate: true })),
     mode: "onSubmit",
@@ -58,6 +70,8 @@ export const ToDoAddEndDateAlertDialog = React.forwardRef<
       endDate: formData.endDate,
       taskId: task.id,
     })
+    setIsModalOpen(false)
+    setIsDropdownOpen(false)
     addEndDateMutate({ taskId, endDate })
   }
 
@@ -68,8 +82,17 @@ export const ToDoAddEndDateAlertDialog = React.forwardRef<
       <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
       <AlertDialogContent
         {...props}
+        contentOffset="14rem"
         className={cn("", props.className)}
         ref={ref}>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Update end date</AlertDialogTitle>
+          <AlertDialogDescription>
+            You're editing the end date for this task:
+          </AlertDialogDescription>
+          <p className="__two bg-background py-2 px-4 rounded-lg text-color">{task.task}</p>
+        </AlertDialogHeader>
+
         <Form {...methods}>
           <form
             onSubmit={methods.handleSubmit(submitHandler)}
@@ -101,6 +124,7 @@ export const ToDoAddEndDateAlertDialog = React.forwardRef<
                           selected={field.value ?? new Date()}
                           onSelect={field.onChange}
                           disabled={date => date <= new Date()}
+                          defaultMonth={field.value ?? new Date()}
                           initialFocus
                         />
                       </PopoverContent>
@@ -110,12 +134,19 @@ export const ToDoAddEndDateAlertDialog = React.forwardRef<
                 </FormItem>
               )}
             />
-            <div className="flex gap-2 justify-between">
-              <div></div>
+            <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center justify-end">
+              <AlertDialogCancel asChild>
+                <Button
+                  variant="default"
+                  className="mt-0 order-1 sm:order-none">
+                  <span>Cancel</span>
+                </Button>
+              </AlertDialogCancel>
               <Button
                 type="submit"
                 className="__action">
-                Add end date
+                <IconCalendar />
+                {task.endDate ? "Change end date" : "Add end date"}
               </Button>
             </div>
           </form>

@@ -15,7 +15,7 @@ import { performOperation } from "@/utils/performTransaction"
 import { queryParser } from "@/utils/queryParser"
 
 const querySchema = z.object({ subtaskId: z.string() })
-const bodySchema = mutateChangeSubtaskTextSchema.pick({ text: true })
+const bodySchema = mutateChangeSubtaskTextSchema.pick({ text: true }).strict()
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "DELETE") {

@@ -4,8 +4,6 @@ export async function addEndDateTaskMutationFunction(
   { endDate, taskId }: MutateAddEndDateTask,
   headers: Headers
 ) {
-  console.log({ payload: { endDate, taskId } })
-
   const response = await fetch(`/api/task/${taskId}/endDate`, {
     body: JSON.stringify({
       endDate,

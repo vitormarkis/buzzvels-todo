@@ -54,7 +54,7 @@ export const ToDoDeleteAlertDialog = React.forwardRef<
           <AlertDialogAction asChild>
             <Button
               onClick={() => handleDeleteTask({ taskId: task.id })}
-              className="__block">
+              className="__block text-white">
               <IconTrash
                 size={16}
                 style={{ color: "inherit" }}

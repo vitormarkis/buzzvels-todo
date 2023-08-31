@@ -63,8 +63,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { userId } = auth
       const tasksFetch = await getTasks(redis, userId)
 
-      console.log(tasksFetch.errors)
-
       const { operationSuccess } = validateOperation(tasksFetch)
       if (!operationSuccess) return res.status(500).json(getFailedJson("tasks", req))
 

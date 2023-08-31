@@ -1,4 +1,4 @@
-import React from "react"
+import React, { createContext, useContext, useState } from "react"
 
 import { cn } from "@/lib/utils"
 
@@ -37,8 +37,12 @@ export const ToDoOptionsDropdown = React.forwardRef<
   React.ElementRef<"div">,
   ToDoOptionsDropdownProps
 >(function ToDoOptionsDropdownComponent({ handleDeleteTask, task, children, ...props }, ref) {
+  const { isDropdownOpen, setIsDropdownOpen } = useContext(ToDoOptionsDropdownContext)
+
   return (
-    <DropdownMenu>
+    <DropdownMenu
+      open={isDropdownOpen}
+      onOpenChange={setIsDropdownOpen}>
       <DropdownMenuTrigger>{children}</DropdownMenuTrigger>
       <DropdownMenuContent
         {...props}
@@ -58,10 +62,7 @@ export const ToDoOptionsDropdown = React.forwardRef<
             <span>Delete</span>
           </Button>
         </ToDoDeleteAlertDialog>
-        <ToDoAddEndDateAlertDialog
-          task={task}
-          // handleAddEndDate={handleAddEndDate}>
-          handleAddEndDate={(...addEndDate) => console.log({ addEndDate })}>
+        <ToDoAddEndDateAlertDialog task={task}>
           <Button
             variant="ghost"
             className="h-9 px-2 py-1.5 cursor-default justify-start w-full font-normal rounded-sm">
@@ -69,7 +70,7 @@ export const ToDoOptionsDropdown = React.forwardRef<
               size={16}
               style={{ color: "inherit" }}
             />
-            <span>Add end date</span>
+            <span>{task.endDate ? "Change end date" : "Add end date"}</span>
           </Button>
         </ToDoAddEndDateAlertDialog>
       </DropdownMenuContent>
@@ -78,3 +79,29 @@ export const ToDoOptionsDropdown = React.forwardRef<
 })
 
 ToDoOptionsDropdown.displayName = "ToDoOptionsDropdown"
+
+export interface IToDoOptionsDropdownContext {
+  isDropdownOpen: boolean
+  setIsDropdownOpen: (isOpen: boolean) => void
+}
+
+export const ToDoOptionsDropdownContext = createContext({} as IToDoOptionsDropdownContext)
+
+export function ToDoOptionsDropdownProvider(props: { children: React.ReactNode }) {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+
+  const setIsDropdownOpenHandler = (isOpen: boolean) => {
+    if (!isOpen) document.body.style.pointerEvents = "all"
+    setIsDropdownOpen(isOpen)
+  }
+
+  return (
+    <ToDoOptionsDropdownContext.Provider
+      value={{
+        isDropdownOpen,
+        setIsDropdownOpen: setIsDropdownOpenHandler,
+      }}>
+      {props.children}
+    </ToDoOptionsDropdownContext.Provider>
+  )
+}

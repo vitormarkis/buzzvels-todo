@@ -127,7 +127,7 @@ describe("/api/subtask/[subtaskId]", () => {
       const response = { json: jsonResponse, status: responseStatus } as any
       const request = createTaskRequest({
         query: { subtaskId: "subtaskid_191919" },
-        body: { task: "new text content" },
+        body: { invalid: "property" },
       }) as any
       await handler(request, response)
       expect(responseStatus).toHaveBeenCalledWith(400)

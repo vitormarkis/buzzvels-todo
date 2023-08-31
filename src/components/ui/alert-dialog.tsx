@@ -3,10 +3,13 @@
 import * as React from "react"
 
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog"
+import { Slot } from "@radix-ui/react-slot"
 
 import { cn } from "@/lib/utils"
 
 import { buttonVariants } from "@/components/ui/button"
+
+import { cssVariables } from "@/utils/units/cssVariables"
 
 const AlertDialog = AlertDialogPrimitive.Root
 
@@ -38,21 +41,65 @@ const AlertDialogOverlay = React.forwardRef<
 ))
 AlertDialogOverlay.displayName = AlertDialogPrimitive.Overlay.displayName
 
+type AlertDialogContentWrapper = {
+  children: React.ReactNode
+  contentOffset?: `${string}rem`
+  className?: string
+}
+
+const AlertDialogContentWrapper = ({
+  className,
+  children,
+  contentOffset,
+}: AlertDialogContentWrapper) => {
+  const Component = contentOffset ? "div" : Slot
+
+  return (
+    <Component
+      className={cn(
+        "fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg md:w-full",
+        contentOffset && "pb-[var(--contentOffset)]",
+        className
+      )}
+      style={cssVariables(["--contentOffset", contentOffset ?? 0])}>
+      {children}
+    </Component>
+  )
+}
+
 const AlertDialogContent = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content>
->(({ className, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content> &
+    Pick<AlertDialogContentWrapper, "contentOffset">
+>(({ contentOffset, className, ...props }, ref) => {
   return (
     <AlertDialogPortal>
       <AlertDialogOverlay />
-      <AlertDialogPrimitive.Content
-        ref={ref}
-        className={cn(
-          "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg md:w-full",
-          className
-        )}
-        {...props}
-      />
+      <AlertDialogContentWrapper
+        className={`
+        [&:has([data-state='open'])]:animate-in
+        [&:has([data-state='open'])]:fade-in-0
+        [&:has([data-state='open'])]:zoom-in-95
+        [&:has([data-state='open'])]:slide-in-from-left-1/2
+        [&:has([data-state='open'])]:slide-in-from-top-[48%]
+        [&:has([data-state='closed'])]:animate-out
+        [&:has([data-state='closed'])]:fade-out-0
+        [&:has([data-state='closed'])]:zoom-out-95
+        [&:has([data-state='closed'])]:slide-out-to-left-1/2
+        [&:has([data-state='closed'])]:slide-out-to-top-[48%]
+        `
+          .replace(/\s+/g, " ")
+          .trim()}
+        contentOffset={contentOffset}>
+        <AlertDialogPrimitive.Content
+          ref={ref}
+          className={cn(
+            "grid gap-4 border bg-background p-6 shadow-lg duration-200 sm:rounded-lg",
+            className
+          )}
+          {...props}
+        />
+      </AlertDialogContentWrapper>
     </AlertDialogPortal>
   )
 })
@@ -125,6 +172,7 @@ AlertDialogCancel.displayName = AlertDialogPrimitive.Cancel.displayName
 export {
   AlertDialog,
   AlertDialogTrigger,
+  AlertDialogOverlay,
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogFooter,
