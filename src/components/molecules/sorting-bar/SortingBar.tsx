@@ -1,11 +1,8 @@
 import React, { useState } from "react"
-
 import { cn } from "@/lib/utils"
-
 import { SortingStateCard } from "@/components/molecules/sorting-state-card/SortingStateCard"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-
 import { SortDate, SortIsDone, SortText, useTasksListState } from "@/hooks/useTasksListState"
 
 export type SortingBarProps = React.ComponentPropsWithoutRef<"div"> & {}

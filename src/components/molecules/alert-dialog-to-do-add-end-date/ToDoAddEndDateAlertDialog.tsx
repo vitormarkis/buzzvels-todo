@@ -2,11 +2,8 @@ import { format } from "date-fns"
 import { CalendarIcon } from "lucide-react"
 import React, { useContext, useState } from "react"
 import { SubmitHandler, useForm } from "react-hook-form"
-
 import { zodResolver } from "@hookform/resolvers/zod"
-
 import { cn } from "@/lib/utils"
-
 import { IconCalendar } from "@/components/icons/IconCalendar"
 import { IconTrash } from "@/components/icons/IconTrash"
 import { ToDoOptionsDropdownContext } from "@/components/molecules/dropdown-to-do-options/ToDoOptionsDropdown"
@@ -33,7 +30,6 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-
 import { TaskContext } from "@/contexts/task/taskContext"
 import { useTasksContext } from "@/contexts/tasks/tasksContext"
 import { TaskSession } from "@/fetchs/tasks/schema"
@@ -82,13 +78,15 @@ export const ToDoAddEndDateAlertDialog = React.forwardRef<
   return (
     <AlertDialog
       open={isModalOpen}
-      onOpenChange={setIsModalOpen}>
+      onOpenChange={setIsModalOpen}
+    >
       <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
       <AlertDialogContent
         {...props}
         contentOffset="14rem"
         className={cn("", props.className)}
-        ref={ref}>
+        ref={ref}
+      >
         <AlertDialogHeader>
           <AlertDialogTitle>Update end date</AlertDialogTitle>
           <AlertDialogDescription>
@@ -100,7 +98,8 @@ export const ToDoAddEndDateAlertDialog = React.forwardRef<
         <Form {...methods}>
           <form
             onSubmit={methods.handleSubmit(submitHandler)}
-            className="[&>div>label]:mb-1.5 space-y-4">
+            className="[&>div>label]:mb-1.5 space-y-4"
+          >
             <FormField
               control={methods.control}
               name="endDate"
@@ -114,7 +113,8 @@ export const ToDoAddEndDateAlertDialog = React.forwardRef<
                             className={cn(
                               "__two border text-color w-full pl-3 text-left font-normal",
                               !field.value && "text-color-soft"
-                            )}>
+                            )}
+                          >
                             {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
@@ -122,7 +122,8 @@ export const ToDoAddEndDateAlertDialog = React.forwardRef<
                       </PopoverTrigger>
                       <PopoverContent
                         className="w-auto p-0"
-                        align="start">
+                        align="start"
+                      >
                         <Calendar
                           mode="single"
                           selected={field.value ?? new Date()}
@@ -142,13 +143,15 @@ export const ToDoAddEndDateAlertDialog = React.forwardRef<
               <AlertDialogCancel asChild>
                 <Button
                   variant="default"
-                  className="mt-0 order-1 sm:order-none">
+                  className="mt-0 order-1 sm:order-none"
+                >
                   <span>Cancel</span>
                 </Button>
               </AlertDialogCancel>
               <Button
                 type="submit"
-                className="__action">
+                className="__action"
+              >
                 <IconCalendar />
                 {task.endDate ? "Change end date" : "Add end date"}
               </Button>

@@ -1,14 +1,10 @@
 "use client"
 
 import * as React from "react"
-
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog"
 import { Slot } from "@radix-ui/react-slot"
-
 import { cn } from "@/lib/utils"
-
 import { buttonVariants } from "@/components/ui/button"
-
 import { cssVariables } from "@/utils/units/cssVariables"
 
 const AlertDialog = AlertDialogPrimitive.Root
@@ -61,7 +57,8 @@ const AlertDialogContentWrapper = ({
         contentOffset && "pb-[var(--contentOffset)]",
         className
       )}
-      style={cssVariables(["--contentOffset", contentOffset ?? 0])}>
+      style={cssVariables(["--contentOffset", contentOffset ?? 0])}
+    >
       {children}
     </Component>
   )
@@ -90,7 +87,8 @@ const AlertDialogContent = React.forwardRef<
         `
           .replace(/\s+/g, " ")
           .trim()}
-        contentOffset={contentOffset}>
+        contentOffset={contentOffset}
+      >
         <AlertDialogPrimitive.Content
           ref={ref}
           className={cn(

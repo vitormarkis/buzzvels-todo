@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState } from "react"
-
 import { useAuth } from "@clerk/nextjs"
 import { User } from "@clerk/nextjs/server"
 
@@ -25,7 +24,8 @@ export function UserInfoProvider({ children }: ComponentWithChildren) {
       value={{
         userId,
         headers,
-      }}>
+      }}
+    >
       {children}
     </UserInfoContext.Provider>
   )

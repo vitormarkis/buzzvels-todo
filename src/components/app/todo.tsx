@@ -1,9 +1,6 @@
 import React, { createContext, useContext } from "react"
-
 import { CheckedState } from "@radix-ui/react-checkbox"
-
 import { cn } from "@/lib/utils"
-
 import { EditableLabel, EditableLabelProps } from "@/components/editable-label/EditableLabel"
 import { IconX } from "@/components/icons"
 import { Button } from "@/components/ui/button"
@@ -19,7 +16,8 @@ export const TodoContainer = React.forwardRef<React.ElementRef<"div">, TodoConta
       <div
         {...props}
         className={cn("flex items-center px-2 gap-1.5", props.className)}
-        ref={ref}>
+        ref={ref}
+      >
         {children}
       </div>
     )
@@ -84,7 +82,8 @@ export const TodoActionsContainer = React.forwardRef<
     <div
       {...props}
       className={cn("flex items-center", props.className)}
-      ref={ref}>
+      ref={ref}
+    >
       {children}
     </div>
   )
@@ -114,7 +113,8 @@ export const TodoAction = React.forwardRef<React.ElementRef<"button">, TodoActio
           "disabled:opacity-50 disabled:cursor-not-allowed hover:bg-background-shadow h-6 w-6 grid place-items-center rounded-md transition",
           props.className
         )}
-        ref={ref}>
+        ref={ref}
+      >
         {children}
       </button>
     )
@@ -153,7 +153,8 @@ export function TodoProvider(
         onCheckedChange,
         checked,
         onLabelChange,
-      }}>
+      }}
+    >
       {props.children}
     </TodoContext.Provider>
   )

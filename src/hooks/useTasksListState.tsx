@@ -89,7 +89,8 @@ export function TasksListStateProvider(props: { children: React.ReactNode }) {
         resetSort,
         setSortState,
         setLastSort,
-      }}>
+      }}
+    >
       {props.children}
     </TasksListStateContext.Provider>
   )

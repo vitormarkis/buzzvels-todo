@@ -1,9 +1,7 @@
 import { nanoid } from "nanoid"
 import { NextApiRequest } from "next"
 import { z } from "zod"
-
 import { redis } from "@/lib/redis"
-
 import { mock_Todos } from "@/__mocks__/api/task"
 import handler from "@/pages/api/task"
 import { GetTasksResponse } from "@/utils/api/getTasks"

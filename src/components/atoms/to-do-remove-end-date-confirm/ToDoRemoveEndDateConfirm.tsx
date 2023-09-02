@@ -1,7 +1,5 @@
 import React, { useContext, useState } from "react"
-
 import { cn } from "@/lib/utils"
-
 import { TaskContext } from "@/contexts/task/taskContext"
 
 export type ToDoRemoveEndDateConfirmProps = React.ComponentPropsWithoutRef<"div"> & {

@@ -7,12 +7,9 @@ import {
   FormProvider,
   useFormContext,
 } from "react-hook-form"
-
 import * as LabelPrimitive from "@radix-ui/react-label"
 import { Slot } from "@radix-ui/react-slot"
-
 import { cn } from "@/lib/utils"
-
 import { Label } from "@/components/ui/label"
 
 const Form = FormProvider
@@ -153,7 +150,8 @@ const FormMessage = React.forwardRef<
       ref={ref}
       id={formMessageId}
       className={cn("text-sm font-medium text-block-soft", className)}
-      {...props}>
+      {...props}
+    >
       {body}
     </p>
   )

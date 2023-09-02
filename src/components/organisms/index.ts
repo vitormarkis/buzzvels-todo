@@ -1,2 +1,2 @@
 export { Header } from "@/components/organisms/header/Header"
-export { Sidebar } from "@/components/organisms/sidebar/Sidebar"
+export { SidebarContent } from "@/components/organisms/sidebar-content/SidebarContent"

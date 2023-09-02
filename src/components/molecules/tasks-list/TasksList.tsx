@@ -1,29 +1,24 @@
 import React from "react"
-
 import { useAuth } from "@clerk/nextjs"
-
 import { cn } from "@/lib/utils"
-
 import { PadWrapper } from "@/components/container/pad-container/PadWrapper"
 import { IconFolderOpen } from "@/components/icons/IconFolderOpen"
 import { ToDo, ToDoSkeleton } from "@/components/molecules/to-do/ToDo"
-
 import { TaskProvider } from "@/contexts/task/taskContext"
-import { TasksContextProvider, useTasksContext } from "@/contexts/tasks/tasksContext"
+import { useTasksContext } from "@/contexts/tasks/tasksContext"
 
 export type TasksListProps = React.ComponentPropsWithoutRef<"div"> & {}
 
 export const TasksList = React.forwardRef<React.ElementRef<"div">, TasksListProps>(
   function TasksListComponent({ ...props }, ref) {
     return (
-      <TasksContextProvider>
-        <PadWrapper
-          {...props}
-          className={cn("gap-1.5", props.className)}
-          ref={ref}>
-          <TasksDisplayed />
-        </PadWrapper>
-      </TasksContextProvider>
+      <PadWrapper
+        {...props}
+        className={cn("gap-1.5", props.className)}
+        ref={ref}
+      >
+        <TasksDisplayed />
+      </PadWrapper>
     )
   }
 )
@@ -62,7 +57,8 @@ export function TasksDisplayed({}: TasksDisplayedProps) {
   return tasks.map(task => (
     <TaskProvider
       key={task.id}
-      task={task}>
+      task={task}
+    >
       <ToDo
         key={task.id}
         className="__first"

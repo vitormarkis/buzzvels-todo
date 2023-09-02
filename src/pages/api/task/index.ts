@@ -1,8 +1,6 @@
 import { nanoid } from "nanoid"
 import { NextApiRequest, NextApiResponse } from "next"
-
 import { redis } from "@/lib/redis"
-
 import { TaskAPI } from "@/fetchs/tasks/schema"
 import { createNewTaskFormSchemaBody } from "@/form/create-new-task/schema"
 import { getTasks } from "@/utils/api/getTasks"

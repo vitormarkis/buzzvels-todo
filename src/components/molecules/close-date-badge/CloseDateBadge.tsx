@@ -1,12 +1,9 @@
 import React from "react"
-
 import { cn } from "@/lib/utils"
-
 import { Case } from "@/components/atoms/case/Case"
 import { IconCheck } from "@/components/icons"
 import { IconWarning } from "@/components/icons/IconWarning"
 import { IconWarningSeal } from "@/components/icons/IconWarningSeal"
-
 import { IconProps } from "@/types/icon-props"
 
 // {
@@ -27,11 +24,13 @@ export const CloseDateBadge = React.forwardRef<React.ElementRef<"div">, CloseDat
       <div
         {...props}
         className={cn("__first", props.className)}
-        ref={ref}>
+        ref={ref}
+      >
         <Case condition={isDone}>
           <CloseDateBadgeContent
             palette="__positive"
-            icon={<IconCheck size={12} />}>
+            icon={<IconCheck size={12} />}
+          >
             Task done at time.
           </CloseDateBadgeContent>
         </Case>
@@ -39,14 +38,16 @@ export const CloseDateBadge = React.forwardRef<React.ElementRef<"div">, CloseDat
           <Case condition={closeDate === "one-day"}>
             <CloseDateBadgeContent
               palette="__block"
-              icon={<IconWarningSeal size={12} />}>
+              icon={<IconWarningSeal size={12} />}
+            >
               One day remaining to finish the task.
             </CloseDateBadgeContent>
           </Case>
           <Case condition={closeDate === "two-days"}>
             <CloseDateBadgeContent
               palette="__warn"
-              icon={<IconWarning size={12} />}>
+              icon={<IconWarning size={12} />}
+            >
               Two days remaining to finish the task.
             </CloseDateBadgeContent>
           </Case>
@@ -91,12 +92,14 @@ export const CloseDateBadgeContent = React.forwardRef<
     <div
       {...props}
       className={cn("flex items-center relative", props.className)}
-      ref={ref}>
+      ref={ref}
+    >
       <div
         className={cn(
           "h-5 w-5 shrink-0 z-10 grid place-items-center rounded-md bg-background border-heading/20",
           palette
-        )}>
+        )}
+      >
         {icon}
       </div>
       <div className="-translate-x-[0.5rem] pl-3 leading-none py-0.5 px-2 text-xs text-color bg-background border truncate rounded-md">

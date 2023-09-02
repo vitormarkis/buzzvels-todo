@@ -3,9 +3,7 @@
 import { cva, type VariantProps } from "class-variance-authority"
 import { Check } from "lucide-react"
 import * as React from "react"
-
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
-
 import { cn } from "@/lib/utils"
 
 const checkboxVariants = cva(
@@ -43,9 +41,11 @@ const Checkbox = React.forwardRef<React.ElementRef<typeof CheckboxPrimitive.Root
     <CheckboxPrimitive.Root
       ref={ref}
       className={cn(checkboxVariants({ size, className }))}
-      {...props}>
+      {...props}
+    >
       <CheckboxPrimitive.Indicator
-        className={cn("flex items-center justify-center text-color-strong")}>
+        className={cn("flex items-center justify-center text-color-strong")}
+      >
         <Check className={checkboxIconVariants({ size })} />
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>

@@ -1,9 +1,7 @@
 import { CheckedState } from "@radix-ui/react-checkbox"
 import { QueryClient } from "@tanstack/react-query"
-
 import { createQueryCacheGetters } from "@/factories/createQueryCacheGetters"
 import { createTasksCache } from "@/factories/createTasksCache"
-
 import { SubtaskSession, TaskSession } from "@/fetchs/tasks/schema"
 
 type UserID = string | null | undefined

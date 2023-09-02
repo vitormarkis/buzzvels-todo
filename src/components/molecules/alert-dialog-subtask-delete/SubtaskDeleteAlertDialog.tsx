@@ -1,10 +1,7 @@
 import React from "react"
-
 import { useAuth } from "@clerk/nextjs"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-
 import { cn } from "@/lib/utils"
-
 import { IconTrash } from "@/components/icons/IconTrash"
 import {
   AlertDialog,
@@ -19,9 +16,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/use-toast"
-
 import { createQueryCache } from "@/factories/createQueryCache"
-
 import { useUserInfo } from "@/contexts/user-info/userInfoContext"
 import { SubtaskSession } from "@/fetchs/tasks/schema"
 import { MutateDeleteSubtaskInput, mutateDeleteSubtaskSchema } from "@/schemas/subtask/delete"
@@ -83,7 +78,8 @@ export const SubtaskDeleteAlertDialog = React.forwardRef<
       <AlertDialogContent
         {...props}
         className={cn("", props.className)}
-        ref={ref}>
+        ref={ref}
+      >
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Sub-task</AlertDialogTitle>
           <div className="flex flex-col gap-2">
@@ -109,7 +105,8 @@ export const SubtaskDeleteAlertDialog = React.forwardRef<
                   taskId: subtask.taskId,
                 })
               }
-              className="__block text-white">
+              className="__block text-white"
+            >
               <IconTrash
                 size={16}
                 style={{ color: "inherit" }}

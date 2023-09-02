@@ -4,13 +4,9 @@ import { nanoid } from "nanoid"
 import { useRouter } from "next/router"
 import React, { useState } from "react"
 import { SubmitHandler, useForm } from "react-hook-form"
-
 import { useAuth } from "@clerk/nextjs"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { UseMutateFunction } from "@tanstack/react-query"
-
 import { cn } from "@/lib/utils"
-
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -25,8 +21,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-
-import { TaskSession } from "@/fetchs/tasks/schema"
+import { useTasksContext } from "@/contexts/tasks/tasksContext"
 import {
   CreateNewTaskForm,
   CreateNewTaskFormInput,
@@ -35,28 +30,19 @@ import {
 
 export type ModalCreateNewTaskProps = React.ComponentPropsWithoutRef<"div"> & {
   children?: React.ReactNode
-  mutate: UseMutateFunction<
-    TaskSession,
-    any,
-    {
-      endDate: number | null
-      task: string
-    } & {
-      taskId: string
-    },
-    unknown
-  >
 }
 
 export const ModalCreateNewTask = React.forwardRef<
   React.ElementRef<"div">,
   ModalCreateNewTaskProps
->(function ModalCreateNewTaskComponent({ children, mutate, ...props }, ref) {
+>(function ModalCreateNewTaskComponent({ children, ...props }, ref) {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [hasDeadlineDate, setHasDeadlineDate] = useState<boolean | "indeterminate">("indeterminate")
   const [endDatePickerIsDirty, setEndDatePickerIsDirty] = useState(false)
   const { userId } = useAuth()
   const router = useRouter()
+  const { getCreateNewTodoMutate } = useTasksContext()
+  const { mutate: createNewTodoMutate } = getCreateNewTodoMutate()
 
   const onOpenChange = (open: boolean) => {
     if (!userId) {
@@ -81,13 +67,14 @@ export const ModalCreateNewTask = React.forwardRef<
   const submitHandler: SubmitHandler<CreateNewTaskFormInput> = async formData => {
     const taskMutateProps = formData as CreateNewTaskForm
     setIsModalOpen(false)
-    mutate({ ...taskMutateProps, taskId: `TEMPORARY_${nanoid()}` })
+    createNewTodoMutate({ ...taskMutateProps, taskId: `TEMPORARY_${nanoid()}` })
   }
 
   return (
     <Dialog
       open={isModalOpen}
-      onOpenChange={open => setIsModalOpen(onOpenChange(open))}>
+      onOpenChange={open => setIsModalOpen(onOpenChange(open))}
+    >
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent
         onCloseAutoFocus={() => {
@@ -96,11 +83,13 @@ export const ModalCreateNewTask = React.forwardRef<
         }}
         {...props}
         className={cn("space-y-2", props.className)}
-        ref={ref}>
+        ref={ref}
+      >
         <Form {...methods}>
           <form
             onSubmit={methods.handleSubmit(submitHandler)}
-            className="[&>div>label]:mb-1.5 space-y-4">
+            className="[&>div>label]:mb-1.5 space-y-4"
+          >
             <FormField
               control={methods.control}
               name="task"
@@ -156,7 +145,8 @@ export const ModalCreateNewTask = React.forwardRef<
                                 "__two border text-color w-full pl-3 text-left font-normal",
                                 !field.value && "text-color-soft"
                               )}
-                              disabled={!hasDeadlineDate || hasDeadlineDate === "indeterminate"}>
+                              disabled={!hasDeadlineDate || hasDeadlineDate === "indeterminate"}
+                            >
                               {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
@@ -164,7 +154,8 @@ export const ModalCreateNewTask = React.forwardRef<
                         </PopoverTrigger>
                         <PopoverContent
                           className="w-auto p-0"
-                          align="start">
+                          align="start"
+                        >
                           <Calendar
                             mode="single"
                             selected={field.value ?? new Date()}
@@ -189,7 +180,8 @@ export const ModalCreateNewTask = React.forwardRef<
                     setEndDatePickerIsDirty(true)
                   }
                 }}
-                className="__action">
+                className="__action"
+              >
                 Add to-do
               </Button>
             </div>

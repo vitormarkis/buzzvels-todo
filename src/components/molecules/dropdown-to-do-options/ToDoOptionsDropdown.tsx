@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useState } from "react"
-
 import { cn } from "@/lib/utils"
-
 import { ToDoRemoveEndDateConfirm } from "@/components/atoms/to-do-remove-end-date-confirm/ToDoRemoveEndDateConfirm"
 import { IconX } from "@/components/icons"
 import { IconBackspace } from "@/components/icons/IconBackspace"
@@ -27,7 +25,6 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-
 import { TaskSession } from "@/fetchs/tasks/schema"
 
 export type ToDoOptionsDropdownProps = React.ComponentPropsWithoutRef<"div"> & {
@@ -45,19 +42,23 @@ export const ToDoOptionsDropdown = React.forwardRef<
   return (
     <DropdownMenu
       open={isDropdownOpen}
-      onOpenChange={setIsDropdownOpen}>
-      <DropdownMenuTrigger>{children}</DropdownMenuTrigger>
+      onOpenChange={setIsDropdownOpen}
+    >
+      <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
       <DropdownMenuContent
         {...props}
         className={cn("", props.className)}
         ref={ref}
-        align="end">
+        align="end"
+      >
         <ToDoDeleteAlertDialog
           task={task}
-          handleDeleteTask={handleDeleteTask}>
+          handleDeleteTask={handleDeleteTask}
+        >
           <Button
             variant="ghost"
-            className="h-9 px-2 py-1.5 cursor-default justify-start w-full font-normal rounded-sm">
+            className="h-9 px-2 py-1.5 cursor-default justify-start w-full font-normal rounded-sm"
+          >
             <IconTrash
               size={16}
               style={{ color: "inherit" }}
@@ -68,7 +69,8 @@ export const ToDoOptionsDropdown = React.forwardRef<
         <ToDoAddEndDateAlertDialog task={task}>
           <Button
             variant="ghost"
-            className="h-9 px-2 py-1.5 cursor-default justify-start w-full font-normal rounded-sm">
+            className="h-9 px-2 py-1.5 cursor-default justify-start w-full font-normal rounded-sm"
+          >
             <IconCalendar
               size={16}
               style={{ color: "inherit" }}
@@ -82,7 +84,8 @@ export const ToDoOptionsDropdown = React.forwardRef<
               <Button
                 variant="ghost"
                 onClick={stage}
-                className="h-9 px-2 py-1.5 cursor-default justify-start w-full font-normal rounded-sm">
+                className="h-9 px-2 py-1.5 cursor-default justify-start w-full font-normal rounded-sm"
+              >
                 <IconBackspace
                   size={16}
                   style={{ color: "inherit" }}
@@ -93,7 +96,8 @@ export const ToDoOptionsDropdown = React.forwardRef<
             confirmElement={({ action }) => (
               <Button
                 onClick={action}
-                className="__block h-9 px-2 py-1.5 cursor-default justify-start w-full font-normal rounded-sm">
+                className="__block h-9 px-2 py-1.5 cursor-default justify-start w-full font-normal rounded-sm"
+              >
                 <IconX
                   size={16}
                   style={{ color: "inherit" }}
@@ -130,7 +134,8 @@ export function ToDoOptionsDropdownProvider(props: { children: React.ReactNode }
       value={{
         isDropdownOpen,
         setIsDropdownOpen: setIsDropdownOpenHandler,
-      }}>
+      }}
+    >
       {props.children}
     </ToDoOptionsDropdownContext.Provider>
   )

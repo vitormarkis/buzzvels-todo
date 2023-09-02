@@ -1,7 +1,5 @@
 import { QueryClient } from "@tanstack/react-query"
-
 import { createQueryCacheGetters } from "@/factories/createQueryCacheGetters"
-
 import { useTasksContext } from "@/contexts/tasks/tasksContext"
 import { TaskSession } from "@/fetchs/tasks/schema"
 

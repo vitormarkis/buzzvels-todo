@@ -1,5 +1,4 @@
 import React from "react"
-
 import { cn } from "@/lib/utils"
 
 export type PadWrapperProps = React.ComponentPropsWithoutRef<"section"> & {
@@ -12,7 +11,8 @@ export const PadWrapper = React.forwardRef<React.ElementRef<"section">, PadWrapp
       <section
         {...props}
         className={cn("bg-background rounded-none xs:rounded-xl flex flex-col", props.className)}
-        ref={ref}>
+        ref={ref}
+      >
         {children}
       </section>
     )

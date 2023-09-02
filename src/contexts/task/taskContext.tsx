@@ -1,12 +1,8 @@
 import React, { createContext, useContext } from "react"
-
 import { useAuth } from "@clerk/nextjs"
 import { UseMutateFunction, useMutation, useQueryClient } from "@tanstack/react-query"
-
 import { toast } from "@/components/ui/use-toast"
-
 import { createQueryCache } from "@/factories/createQueryCache"
-
 import { useTasksContext } from "@/contexts/tasks/tasksContext"
 import { useUserInfo } from "@/contexts/user-info/userInfoContext"
 import { TaskSession } from "@/fetchs/tasks/schema"
@@ -57,7 +53,8 @@ export function TaskProvider(props: { children: React.ReactNode; task: TaskSessi
       value={{
         addEndDateMutate,
         task: props.task,
-      }}>
+      }}
+    >
       {props.children}
     </TaskContext.Provider>
   )

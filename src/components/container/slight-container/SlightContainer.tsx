@@ -1,5 +1,4 @@
 import React from "react"
-
 import { cn } from "@/lib/utils"
 
 export type SlightContainerProps = React.ComponentPropsWithoutRef<"div"> & {
@@ -12,7 +11,8 @@ export const SlightContainer = React.forwardRef<React.ElementRef<"div">, SlightC
       <div
         {...props}
         className={cn("flex items-center p-1.5 gap-1.5 rounded-full border", props.className)}
-        ref={ref}>
+        ref={ref}
+      >
         {children}
       </div>
     )

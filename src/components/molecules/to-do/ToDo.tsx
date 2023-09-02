@@ -1,12 +1,9 @@
 import { nanoid } from "nanoid"
-import React, { useContext, useState } from "react"
-
+import React, { useState } from "react"
 import { useAuth } from "@clerk/nextjs"
 import { CheckedState } from "@radix-ui/react-checkbox"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-
 import { cn } from "@/lib/utils"
-
 import {
   TodoAction,
   TodoActionsContainer,
@@ -33,10 +30,7 @@ import { Accordion, AccordionContent, AccordionItem } from "@/components/ui/acco
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/components/ui/use-toast"
-
 import { createQueryCache } from "@/factories/createQueryCache"
-
-import { TaskContext, TaskProvider } from "@/contexts/task/taskContext"
 import { useUserInfo } from "@/contexts/user-info/userInfoContext"
 import { SubtaskAPI, SubtaskSession, TaskSession } from "@/fetchs/tasks/schema"
 import {
@@ -280,7 +274,8 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
               className={cn(
                 "__action flex xs:hidden items-center h-4 text-xs rounded-full px-4 bg-background text-color-strong",
                 closeDate === "past" ? "__neutral" : "__action"
-              )}>
+              )}
+            >
               <span>{new Date(task.endDate).toLocaleDateString().slice(0, 5)}</span>
             </div>
           )}
@@ -293,16 +288,19 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
           shouldShow && "pt-2.5",
           props.className
         )}
-        ref={ref}>
+        ref={ref}
+      >
         <Accordion
           type="single"
           collapsible
           className="flex-1"
           value={whichAccordionOpen}
-          onValueChange={setWhichAccordionOpen}>
+          onValueChange={setWhichAccordionOpen}
+        >
           <AccordionItem
             value="subtasks"
-            className="flex flex-col">
+            className="flex flex-col"
+          >
             <div className="flex gap-2">
               <div className="flex items-start gap-2 flex-1">
                 <Checkbox
@@ -328,8 +326,8 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                           __action: closeDate !== "past",
                           __neutral: closeDate === "past",
                         }
-                      )}>
-                      {/* <pre>{JSON.stringify({ closeDate: closeDate || "undefined" }, null, 2)}</pre> */}
+                      )}
+                    >
                       <span>{new Date(task.endDate).toLocaleDateString().slice(0, 5)}</span>
                     </div>
                   )}
@@ -339,13 +337,15 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                 <Button
                   data-nosubtasks={task.subtasks.length === 0}
                   className="h-8 w-8 p-0 data-[nosubtasks=true]:opacity-50 data-[nosubtasks=true]:hover:opacity-100 transition"
-                  onClick={handleToggleAccordion["subtasks"]}>
+                  onClick={handleToggleAccordion["subtasks"]}
+                >
                   <IconListTree />
                 </Button>
                 <ToDoOptionsDropdownProvider>
                   <ToDoOptionsDropdown
                     handleDeleteTask={handleDeleteTask}
-                    task={task}>
+                    task={task}
+                  >
                     <Button className="h-8 w-8 p-0">
                       <IconThreeDotsVertical className="text-color-strong" />
                     </Button>
@@ -368,7 +368,8 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                         initialLabelValue={subtask.task}
                         onLabelChange={newValue =>
                           handleChangeSubtaskText({ subtaskId: subtask.id, text: newValue })
-                        }>
+                        }
+                      >
                         <TodoContainer>
                           <TodoCheckbox />
                           <TodoEditableLabel
@@ -380,7 +381,8 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                             <SubtaskDeleteAlertDialog
                               subtask={subtask}
                               resetNewSubtaskState={resetNewSubtaskState}
-                              setWhichAccordionOpen={setWhichAccordionOpen}>
+                              setWhichAccordionOpen={setWhichAccordionOpen}
+                            >
                               <TodoAction>
                                 <IconX size={14} />
                               </TodoAction>
@@ -400,7 +402,8 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                           isDone: !!isNewSubtaskDone,
                           task: newText,
                         })
-                      }>
+                      }
+                    >
                       <TodoContainer>
                         <TodoCheckbox />
                         <TodoEditableLabel
@@ -417,7 +420,8 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                             onClick={() => {
                               setWhichAccordionOpen("")
                               resetNewSubtaskState()
-                            }}>
+                            }}
+                          >
                             <IconX size={14} />
                           </TodoAction>
                         </TodoActionsContainer>
@@ -435,7 +439,8 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                           isDone: !!isNewSubtaskDone,
                           task: newText,
                         })
-                      }>
+                      }
+                    >
                       <TodoContainer>
                         <TodoCheckbox />
                         <TodoEditableLabel
@@ -453,7 +458,8 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                               const hasNoSubtask = task.subtasks.length === 0
                               if (hasNoSubtask) setWhichAccordionOpen("")
                               resetNewSubtaskState()
-                            }}>
+                            }}
+                          >
                             <IconX size={14} />
                           </TodoAction>
                         </TodoActionsContainer>
@@ -465,7 +471,8 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
                   data-disabled={isAddingNewSubtask || task.subtasks.length === 0}
                   onClick={() => setIsAddingNewSubtask(true)}
                   className="__neutral disabled:opacity-50 disabled:cursor-not-allowed ml-2 h-5 text-xs w-fit pr-4 pl-2"
-                  disabled={isAddingNewSubtask || task.subtasks.length === 0}>
+                  disabled={isAddingNewSubtask || task.subtasks.length === 0}
+                >
                   <IconPlus
                     size={10}
                     className="text-color-strong"
@@ -492,7 +499,8 @@ export const ToDoSkeleton = React.forwardRef<React.ElementRef<"div">, ToDoSkelet
           "__first justify-between animate-pulse px-4 rounded-none xs:rounded-[0.625rem]",
           props.className
         )}
-        ref={ref}>
+        ref={ref}
+      >
         <div className="flex items-center gap-2 flex-1">
           <Checkbox checked={false} />
           <div className="w-full px-1.5 py-[1.625rem] xs:py-3.5">

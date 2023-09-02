@@ -1,7 +1,5 @@
 import React from "react"
-
 import { cn } from "@/lib/utils"
-
 import { IconTrash } from "@/components/icons/IconTrash"
 import { MutateDeleteTask } from "@/components/molecules/to-do/ToDo"
 import {
@@ -16,7 +14,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-
 import { TaskSession } from "@/fetchs/tasks/schema"
 
 export type ToDoDeleteAlertDialogProps = React.ComponentPropsWithoutRef<"div"> & {
@@ -35,7 +32,8 @@ export const ToDoDeleteAlertDialog = React.forwardRef<
       <AlertDialogContent
         {...props}
         className={cn("", props.className)}
-        ref={ref}>
+        ref={ref}
+      >
         <AlertDialogHeader>
           <AlertDialogTitle>Delete To-do</AlertDialogTitle>
           <div className="flex flex-col gap-2">
@@ -54,7 +52,8 @@ export const ToDoDeleteAlertDialog = React.forwardRef<
           <AlertDialogAction asChild>
             <Button
               onClick={() => handleDeleteTask({ taskId: task.id })}
-              className="__block text-white">
+              className="__block text-white"
+            >
               <IconTrash
                 size={16}
                 style={{ color: "inherit" }}
