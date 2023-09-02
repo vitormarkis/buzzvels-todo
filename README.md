@@ -120,7 +120,9 @@ All the possible sortings are:
 - Text (ascending)
 - Text (descending)
 
-To see the sorting arrangement, click on the `Sorting` button, that will open a small box displaying the current sorting status, allowing you to easily keep track of how your tasks are organized.
+To see the sorting arrangement, click on the `Sorting` button, that will open a small box displaying the current sorting status, allowing you to easily keep track of how your tasks are organized.\
+<img src="https://github.com/vitormarkis/buzzvels-todo/assets/121525239/71ebca46-118a-4db4-9568-ed87dd91e746" alt="drawing" />
+
 
 
 
