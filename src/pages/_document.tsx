@@ -9,7 +9,7 @@ export default function Document() {
         <NextScript />
         <div
           id="portal"
-          className="fixed inset-0 pointer-events-none"
+          className="fixed inset-0 z-50 pointer-events-none"
         />
       </body>
     </Html>

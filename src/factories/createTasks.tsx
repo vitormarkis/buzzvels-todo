@@ -16,9 +16,23 @@ const tasksSorterMethods: TaskSorter = {
     return b.endDate - a.endDate
   },
   "expiresAt-desc": (a: TaskSession, b: TaskSession) => {
-    if (!a.endDate) return 1
-    if (!b.endDate) return -1
-    return a.endDate - b.endDate
+    if (a.endDate && b.endDate) {
+      const now = new Date().getTime()
+      let aEndDate = new Date(a.endDate).getTime()
+      let bEndDate = new Date(b.endDate).getTime()
+
+      if (aEndDate > now && bEndDate > now) {
+        return aEndDate - bEndDate
+      }
+
+      if (aEndDate < now && bEndDate < now) {
+        return bEndDate - aEndDate
+      }
+
+      return aEndDate > now ? -1 : 1
+    } else {
+      return a.endDate ? -1 : b.endDate ? 1 : 0
+    }
   },
   "text-asc": (a: TaskSession, b: TaskSession) =>
     a.task.toLowerCase() > b.task.toLowerCase()

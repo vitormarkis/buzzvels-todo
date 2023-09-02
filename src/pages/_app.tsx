@@ -22,14 +22,14 @@ const poppins = Poppins({
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <ClerkProvider>
-      <AppProviders>
-        <ClientOnly>
-          <main className={cn(inter.className, poppins.variable)}>
-            <Component {...pageProps} />
-          </main>
-          <Toaster />
-        </ClientOnly>
-      </AppProviders>
+    <AppProviders>
+      <ClientOnly>
+        <main className={cn(inter.className, poppins.variable)}>
+          <Component {...pageProps} />
+        </main>
+        <Toaster />
+      </ClientOnly>
+    </AppProviders>
     </ClerkProvider>
   )
 }
