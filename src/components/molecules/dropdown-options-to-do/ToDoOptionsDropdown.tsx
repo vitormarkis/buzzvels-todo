@@ -8,17 +8,6 @@ import { IconTrash } from "@/components/icons/IconTrash"
 import { ToDoAddEndDateAlertDialog } from "@/components/molecules/alert-dialog-to-do-add-end-date/ToDoAddEndDateAlertDialog"
 import { ToDoDeleteAlertDialog } from "@/components/molecules/alert-dialog-to-do-delete/ToDoDeleteAlertDialog"
 import { MutateDeleteTask } from "@/components/molecules/to-do/ToDo"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -80,10 +69,9 @@ export const ToDoOptionsDropdown = React.forwardRef<
         </ToDoAddEndDateAlertDialog>
         {task.endDate && (
           <ToDoRemoveEndDateConfirm
-            clickableElement={({ stage }) => (
+            clickableElement={
               <Button
                 variant="ghost"
-                onClick={stage}
                 className="h-9 px-2 py-1.5 cursor-default justify-start w-full font-normal rounded-sm"
               >
                 <IconBackspace
@@ -92,19 +80,16 @@ export const ToDoOptionsDropdown = React.forwardRef<
                 />
                 <span>Remove end date</span>
               </Button>
-            )}
-            confirmElement={({ action }) => (
-              <Button
-                onClick={action}
-                className="__block h-9 px-2 py-1.5 cursor-default justify-start w-full font-normal rounded-sm"
-              >
+            }
+            confirmElement={
+              <Button className="__block h-9 px-2 py-1.5 cursor-default justify-start w-full font-normal rounded-sm">
                 <IconX
                   size={16}
                   style={{ color: "inherit" }}
                 />
                 <span>Confirm</span>
               </Button>
-            )}
+            }
           />
         )}
       </DropdownMenuContent>

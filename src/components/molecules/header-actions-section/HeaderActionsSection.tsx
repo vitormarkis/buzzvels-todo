@@ -1,20 +1,14 @@
 import Link from "next/link"
-import { useRouter } from "next/router"
 import React from "react"
-import { useClerk } from "@clerk/nextjs"
 import { User } from "@clerk/nextjs/server"
 import { cn } from "@/lib/utils"
+import { Case } from "@/components/atoms/case/Case"
 import { SlightContainer } from "@/components/container"
-import { IconMoon, IconSignout, IconSun } from "@/components/icons"
+import { IconMoon, IconSun } from "@/components/icons"
+import { HeaderOptionsDropdown } from "@/components/molecules/dropdown-options-header/HeaderOptionsDropdown"
 import { PopoverThemeSwitcher } from "@/components/theme-switcher/PopoverThemeSwitcher"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 export type HeaderActionsSectionProps = React.ComponentPropsWithoutRef<"div"> & {
   user?: User | null | undefined
@@ -25,8 +19,6 @@ export const HeaderActionsSection = React.forwardRef<
   HeaderActionsSectionProps
 >(function HeaderActionsSectionComponent({ user, ...props }, ref) {
   const isSignedIn = !!user
-  const router = useRouter()
-  const { signOut } = useClerk()
 
   const usernameFallback = user
     ? `
@@ -47,37 +39,22 @@ export const HeaderActionsSection = React.forwardRef<
             <IconMoon className="hidden dark:block" />
           </Button>
         </PopoverThemeSwitcher>
-        {isSignedIn ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Avatar>
-                <AvatarImage src={user.imageUrl} />
-                <AvatarFallback>{usernameFallback}</AvatarFallback>
-              </Avatar>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => {
-                  router.push("/sign-in")
-                  void signOut()
-                }}
-              >
-                <IconSignout
-                  size={16}
-                  style={{ color: "inherit" }}
-                />
-                <span>Log out</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
+        <Case condition={isSignedIn}>
+          <HeaderOptionsDropdown>
+            <Avatar>
+              <AvatarImage src={user!.imageUrl} />
+              <AvatarFallback>{usernameFallback}</AvatarFallback>
+            </Avatar>
+          </HeaderOptionsDropdown>
+        </Case>
+        <Case condition={!isSignedIn}>
           <Button
             asChild
             className="__action rounded-full whitespace-nowrap"
           >
             <Link href="/sign-in">Sign in</Link>
           </Button>
-        )}
+        </Case>
       </SlightContainer>
     </div>
   )

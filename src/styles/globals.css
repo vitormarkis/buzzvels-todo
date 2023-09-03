@@ -4,26 +4,19 @@
 
 .bg-special-slate {
   background:
-    linear-gradient(
-        45deg,
-        rgba(var(--background) / 1),
-        rgba(var(--background-shadow) / 1),
-        rgba(var(--background) / 1)
-      )
-      padding-box,
-    linear-gradient(309deg, rgba(var(--color-strong) / 0.1), rgba(var(--color-strong) / 0.2))
-      border-box;
+    linear-gradient(45deg,
+      rgba(var(--background) / 1),
+      rgba(var(--background-shadow) / 1),
+      rgba(var(--background) / 1)) padding-box,
+    linear-gradient(309deg, rgba(var(--color-strong) / 0.1), rgba(var(--color-strong) / 0.2)) border-box;
 }
 
 .bg-special-slate[data-sorting="true"] {
   background:
-    linear-gradient(
-        45deg,
-        rgba(var(--background) / 1),
-        rgba(var(--background-shadow) / 1),
-        rgba(var(--background) / 1)
-      )
-      padding-box,
+    linear-gradient(45deg,
+      rgba(var(--background) / 1),
+      rgba(var(--background-shadow) / 1),
+      rgba(var(--background) / 1)) padding-box,
     linear-gradient(309deg, rgb(20 20 200), rgb(255, 31, 188)) border-box;
 }
 

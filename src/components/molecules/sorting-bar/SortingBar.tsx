@@ -1,4 +1,5 @@
 import React, { useState } from "react"
+import { Slot } from "@radix-ui/react-slot"
 import { cn } from "@/lib/utils"
 import { SortingStateCard } from "@/components/molecules/sorting-state-card/SortingStateCard"
 import { SortDate, SortIsDone, SortText, useTasksListState } from "@/hooks/useTasksListState"
@@ -45,9 +46,9 @@ export const SortingBar = React.forwardRef<React.ElementRef<"div">, SortingBarPr
         className={cn("flex px-4", props.className)}
         ref={ref}
       >
-        <div className="grow py-1.5">
-          <h2 className="text-lg font-medium text-heading">Your To-do's</h2>
-        </div>
+        <HeadingTaskListSection>
+          <h2>Your To-do's</h2>
+        </HeadingTaskListSection>
         <div className="flex items-center gap-2">
           <SortingStateCard
             dateSortingTitle={dateSortingTitle}
@@ -64,39 +65,27 @@ export const SortingBar = React.forwardRef<React.ElementRef<"div">, SortingBarPr
           </SortingStateCard>
 
           <div className="flex items-center gap-2">
-            <button
+            <ButtonSecondary
               title={dateSortingTitle}
               data-active={!!date}
-              className={cn(
-                "__first text-xs bg-transparent h-6 px-2 rounded-lg text-color-soft transition",
-                "data-[active=true]:bg-background hover:text-color-strong"
-              )}
               onClick={() => toggleSort("date")}
             >
               <span>Date</span>
-            </button>
-            <button
+            </ButtonSecondary>
+            <ButtonSecondary
               title={textSortingTitle}
               data-active={!!text}
-              className={cn(
-                "__first text-xs bg-transparent h-6 px-2 rounded-lg text-color-soft transition",
-                "data-[active=true]:bg-background hover:text-color-strong"
-              )}
               onClick={() => toggleSort("text")}
             >
               <span>Text</span>
-            </button>
-            <button
+            </ButtonSecondary>
+            <ButtonSecondary
               title={isDoneSortingTitle}
               data-active={!!isDone}
-              className={cn(
-                "__first text-xs bg-transparent h-6 px-2 rounded-lg text-color-soft transition",
-                "data-[active=true]:bg-background hover:text-color-strong"
-              )}
               onClick={() => toggleSort("isDone")}
             >
               <span>Done</span>
-            </button>
+            </ButtonSecondary>
           </div>
         </div>
       </div>
@@ -105,3 +94,48 @@ export const SortingBar = React.forwardRef<React.ElementRef<"div">, SortingBarPr
 )
 
 SortingBar.displayName = "SortingBar"
+
+export type ButtonSecondaryProps = React.ComponentPropsWithoutRef<"button"> & {
+  children: React.ReactNode
+}
+
+export const ButtonSecondary = React.forwardRef<React.ElementRef<"button">, ButtonSecondaryProps>(
+  function ButtonSecondaryComponent({ children, ...props }, ref) {
+    return (
+      <button
+        {...props}
+        ref={ref}
+        className={cn(
+          "__first text-xs bg-transparent h-6 px-2 rounded-lg text-color-soft transition",
+          "data-[active=true]:bg-background hover:text-color-strong",
+          props.className
+        )}
+      >
+        {children}
+      </button>
+    )
+  }
+)
+
+ButtonSecondary.displayName = "ButtonSecondary"
+
+export type HeadingTaskListSectionProps = React.ComponentPropsWithoutRef<"div"> & {
+  children: React.ReactNode
+}
+
+export const HeadingTaskListSection = React.forwardRef<
+  React.ElementRef<"div">,
+  HeadingTaskListSectionProps
+>(function HeadingTaskListSectionComponent({ children, ...props }, ref) {
+  return (
+    <div
+      {...props}
+      className={cn("grow py-1.5", props.className)}
+      ref={ref}
+    >
+      <Slot className="text-lg font-medium text-heading">{children}</Slot>
+    </div>
+  )
+})
+
+HeadingTaskListSection.displayName = "HeadingTaskListSection"

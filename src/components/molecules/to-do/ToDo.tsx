@@ -1,8 +1,6 @@
 import { nanoid } from "nanoid"
 import React, { useState } from "react"
-import { useAuth } from "@clerk/nextjs"
 import { CheckedState } from "@radix-ui/react-checkbox"
-import { useQueryClient } from "@tanstack/react-query"
 import { cn } from "@/lib/utils"
 import {
   TodoAction,
@@ -21,11 +19,11 @@ import { SubtaskDeleteAlertDialog } from "@/components/molecules/alert-dialog-su
 import {
   CloseDateBadge,
   getCloseDate,
-} from "@/components/molecules/close-date-badge/CloseDateBadge"
+} from "@/components/molecules/badge-close-date/CloseDateBadge"
 import {
   ToDoOptionsDropdown,
   ToDoOptionsDropdownProvider,
-} from "@/components/molecules/dropdown-to-do-options/ToDoOptionsDropdown"
+} from "@/components/molecules/dropdown-options-to-do/ToDoOptionsDropdown"
 import { Accordion, AccordionContent, AccordionItem } from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -57,9 +55,6 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
   const [isNewSubtaskDone, setIsNewSubtaskDone] = useState<CheckedState>(false)
   const [isAddingNewSubtask, setIsAddingNewSubtask] = useState(false)
   const [whichAccordionOpen, setWhichAccordionOpen] = useState("")
-
-  const { userId } = useAuth()
-  const queryClient = useQueryClient()
 
   const {
     getToggleTaskMutate,

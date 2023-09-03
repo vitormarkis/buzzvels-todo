@@ -6,16 +6,16 @@ import { ModalCreateNewTask } from "@/components/modal"
 import { Button } from "@/components/ui/button"
 import { useScrollPosition } from "@/hooks/useScrollPosition"
 
-export type FloatingButtonAddNewTaskProps = React.ComponentPropsWithoutRef<"div"> & {}
+export type AddNewTaskButtonFloatingProps = React.ComponentPropsWithoutRef<"div"> & {}
 
-export const FloatingButtonAddNewTask = React.forwardRef<
+export const AddNewTaskButtonFloating = React.forwardRef<
   React.ElementRef<"div">,
-  FloatingButtonAddNewTaskProps
->(function FloatingButtonAddNewTaskComponent({ ...props }, ref) {
-  const [floatingNewTaskVisible, setFloatingNewTaskVisible] = useState(false)
+  AddNewTaskButtonFloatingProps
+>(function AddNewTaskButtonFloatingComponent({ ...props }, ref) {
+  const [isButtonVisible, setIsButtonVisible] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
 
-  useScrollPosition(setFloatingNewTaskVisible, {
+  useScrollPosition(setIsButtonVisible, {
     range: [120, Infinity],
   })
 
@@ -23,7 +23,7 @@ export const FloatingButtonAddNewTask = React.forwardRef<
     setIsMounted(true)
   }, [])
 
-  return isMounted && floatingNewTaskVisible
+  return isMounted && isButtonVisible
     ? createPortal(
         <div
           {...props}
@@ -42,4 +42,4 @@ export const FloatingButtonAddNewTask = React.forwardRef<
     : null
 })
 
-FloatingButtonAddNewTask.displayName = "FloatingButtonAddNewTask"
+AddNewTaskButtonFloating.displayName = "AddNewTaskButtonFloating"

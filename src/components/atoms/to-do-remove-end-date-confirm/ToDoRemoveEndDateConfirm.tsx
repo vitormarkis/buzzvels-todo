@@ -1,16 +1,16 @@
 import React, { useContext, useState } from "react"
-import { cn } from "@/lib/utils"
+import { Slot } from "@radix-ui/react-slot"
 import { TaskContext } from "@/contexts/task/taskContext"
 
 export type ToDoRemoveEndDateConfirmProps = React.ComponentPropsWithoutRef<"div"> & {
-  clickableElement: (props: { stage: () => void }) => React.ReactNode
-  confirmElement: (props: { action: () => void }) => React.ReactNode
+  clickableElement: JSX.Element
+  confirmElement: JSX.Element
 }
 
-export const ToDoRemoveEndDateConfirm = React.forwardRef<
-  React.ElementRef<"div">,
-  ToDoRemoveEndDateConfirmProps
->(function ToDoRemoveEndDateConfirmComponent({ clickableElement, confirmElement, ...props }, ref) {
+export const ToDoRemoveEndDateConfirm = ({
+  clickableElement,
+  confirmElement,
+}: ToDoRemoveEndDateConfirmProps) => {
   const { task, addEndDateMutate } = useContext(TaskContext)
   const [isStaging, setIsStaging] = useState(false)
 
@@ -26,11 +26,9 @@ export const ToDoRemoveEndDateConfirm = React.forwardRef<
     })
   }
 
-  // {...props}
-  // className={cn("", props.className)}
-  // ref={ref}>
+  const ClickableElement = <Slot onClick={stage}>{clickableElement}</Slot>
 
-  return isStaging ? confirmElement({ action }) : clickableElement({ stage })
-})
+  const ConfirmElement = <Slot onClick={action}>{confirmElement}</Slot>
 
-ToDoRemoveEndDateConfirm.displayName = "ToDoRemoveEndDateConfirm"
+  return isStaging ? ConfirmElement : ClickableElement
+}

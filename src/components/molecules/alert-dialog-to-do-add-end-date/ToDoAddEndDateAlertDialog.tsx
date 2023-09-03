@@ -5,33 +5,21 @@ import { SubmitHandler, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { cn } from "@/lib/utils"
 import { IconCalendar } from "@/components/icons/IconCalendar"
-import { IconTrash } from "@/components/icons/IconTrash"
-import { ToDoOptionsDropdownContext } from "@/components/molecules/dropdown-to-do-options/ToDoOptionsDropdown"
-import { MutateDeleteTask } from "@/components/molecules/to-do/ToDo"
+import { ToDoOptionsDropdownContext } from "@/components/molecules/dropdown-options-to-do/ToDoOptionsDropdown"
 import {
   AlertDialog,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogHeader,
-  AlertDialogOverlay,
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { TaskContext } from "@/contexts/task/taskContext"
-import { useTasksContext } from "@/contexts/tasks/tasksContext"
 import { TaskSession } from "@/fetchs/tasks/schema"
 import {
   MutateAddEndDateTaskInput,
