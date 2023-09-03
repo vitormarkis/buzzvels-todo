@@ -17,7 +17,7 @@ export const TasksListStateContext = createContext({} as ITasksListStateContext)
 const sortValues = {
   text: [null, "text-desc", "text-asc"],
   isDone: [null, "isDone-desc", "isDone-asc"],
-  date: [null, "createdAt-desc", "createdAt-asc", "expiresAt-desc", "expiresAt-asc"],
+  date: ["createdAt-asc", "expiresAt-desc", "expiresAt-asc", null, "createdAt-desc"],
 } as const
 
 export type Sort = typeof sortValues
@@ -36,7 +36,7 @@ export type SortCurrent = {
 
 export function TasksListStateProvider(props: { children: React.ReactNode }) {
   const [sort, setSort] = React.useState<Sort>(sortValues)
-  const [lastSort, setLastSort] = React.useState<SortAllKeys>(null)
+  const [lastSort, setLastSort] = React.useState<SortAllKeys>("createdAt-asc")
 
   const toggleSort = useCallback(
     function (key: SortMethods) {
