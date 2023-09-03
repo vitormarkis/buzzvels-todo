@@ -2,7 +2,7 @@ import { nanoid } from "nanoid"
 import React, { useState } from "react"
 import { useAuth } from "@clerk/nextjs"
 import { CheckedState } from "@radix-ui/react-checkbox"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useQueryClient } from "@tanstack/react-query"
 import { cn } from "@/lib/utils"
 import {
   TodoAction,
@@ -29,25 +29,15 @@ import {
 import { Accordion, AccordionContent, AccordionItem } from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { useToast } from "@/components/ui/use-toast"
-import { createQueryCache } from "@/factories/createQueryCache"
-import { useUserInfo } from "@/contexts/user-info/userInfoContext"
-import { SubtaskAPI, SubtaskSession, TaskSession } from "@/fetchs/tasks/schema"
+import { useTasksContext } from "@/contexts/tasks/tasksContext"
+import { SubtaskSession, TaskSession } from "@/fetchs/tasks/schema"
 import {
   MutateChangeSubtaskTextInput,
   mutateChangeSubtaskTextSchema,
 } from "@/schemas/subtask/change"
 import { MutateChangeTaskTextInput, mutateChangeTaskTextSchema } from "@/schemas/task/change"
 import {
-  changeSubtaskTextMutationFunction,
-  changeTaskTextMutationFunction,
-  deleteTaskMutationFunction,
-  toggleSubtaskMutationFunction,
-  toggleTaskMutationFunction,
-} from "@/services/react-query/mutations"
-import {
   MutateCreateNewSubtaskInput,
-  createNewSubtaskMutationFunction,
   mutateCreateNewSubtaskSchema,
 } from "@/services/react-query/mutations/createNewSubtaskMutationFunction"
 
@@ -67,147 +57,25 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
   const [isNewSubtaskDone, setIsNewSubtaskDone] = useState<CheckedState>(false)
   const [isAddingNewSubtask, setIsAddingNewSubtask] = useState(false)
   const [whichAccordionOpen, setWhichAccordionOpen] = useState("")
-  const { toast } = useToast()
 
-  const { headers } = useUserInfo()
   const { userId } = useAuth()
   const queryClient = useQueryClient()
-  const QueryCache = createQueryCache(queryClient, userId)
 
-  const { mutate: toggleTaskMutate } = useMutation<{}, {}, MutateToggleTask>({
-    mutationFn: payload => toggleTaskMutationFunction(payload, headers),
-    onMutate: ({ taskId, isDone }) => QueryCache.tasks.toggle(taskId, isDone),
-    onError: () => {
-      toast({
-        variant: "destructive",
-        title: "Failed to toggle task",
-        description: (
-          <>
-            Something went wrong on our server during the toggle of your task,{" "}
-            <strong>please try again.</strong>
-          </>
-        ),
-      })
-    },
-    retry: 2,
-  })
-
-  const { mutate: toggleSubtaskMutate } = useMutation<{}, {}, MutateToggleSubtask>({
-    mutationFn: payload => toggleSubtaskMutationFunction(payload, headers),
-    onMutate: ({ isDone, subtask }) => QueryCache.subtasks.toggle(isDone, subtask),
-    onError: () => {
-      toast({
-        variant: "destructive",
-        title: "Failed to toggle sub-task",
-        description: (
-          <>
-            Something went wrong on our server during the toggle of your sub-task,{" "}
-            <strong>please try again.</strong>
-          </>
-        ),
-      })
-    },
-    retry: 2,
-  })
-
-  const { mutate: deleteTaskMutate } = useMutation<{}, {}, MutateDeleteTask>({
-    mutationFn: payload => deleteTaskMutationFunction(payload, headers),
-    onMutate: ({ taskId }) => QueryCache.tasks.remove(taskId),
-    onError: () => {
-      toast({
-        variant: "destructive",
-        title: "Failed to delete task",
-        description: (
-          <>
-            Something went wrong on our server during the deletion of your task,{" "}
-            <strong>please try again.</strong>
-          </>
-        ),
-      })
-    },
-    retry: 3,
-  })
-
-  const { mutate: changeSubtaskTextMutate } = useMutation<{}, {}, MutateChangeSubtaskTextInput>({
-    mutationFn: payload => changeSubtaskTextMutationFunction(payload, headers),
-    onMutate: ({ subtaskId, text }) => QueryCache.subtasks.changeText(subtaskId, text),
-    onError: () => {
-      toast({
-        variant: "destructive",
-        title: "Failed to change sub-task text",
-        description: (
-          <>
-            Something went wrong on our server during the change of your sub-task text,{" "}
-            <strong>please try again.</strong>
-          </>
-        ),
-      })
-    },
-    retry: 3,
-  })
-
-  const { mutate: changeTaskTextMutate } = useMutation<{}, {}, MutateChangeTaskTextInput>({
-    mutationFn: payload => changeTaskTextMutationFunction(payload, headers),
-    onMutate: ({ taskId, text }) => QueryCache.tasks.changeText(taskId, text),
-    onError: () => {
-      toast({
-        variant: "destructive",
-        title: "Failed to change task text",
-        description: (
-          <>
-            Something went wrong on our server during the change of your task text,{" "}
-            <strong>please try again.</strong>
-          </>
-        ),
-      })
-    },
-    retry: 3,
-  })
-
-  const { mutate: createNewSubtaskMutate } = useMutation<
-    SubtaskAPI,
-    {},
-    MutateCreateNewSubtaskInput & {
-      subtaskId: string
-    }
-  >({
-    mutationFn: ({ subtaskId, ...props }) => createNewSubtaskMutationFunction(props, headers),
-    onMutate: ({ taskId, task, subtaskId }) => {
-      QueryCache.subtasks.add({
-        id: subtaskId,
-        isDone: !!isNewSubtaskDone,
-        createdAt: new Date().getTime(),
-        task,
-        taskId,
-      })
-      resetNewSubtaskState()
-    },
-    onError: () => {
-      toast({
-        variant: "destructive",
-        title: "Failed to create sub-task",
-        description: (
-          <>
-            Something went wrong on our server during the creation of your sub-task,{" "}
-            <strong>please try again.</strong>
-          </>
-        ),
-      })
-    },
-    onSuccess: ({ createdAt, id }, { subtaskId, taskId }) => {
-      QueryCache.subtasks.patch(
-        {
-          taskId,
-          subtaskId,
-        },
-        currentSubtask => ({
-          ...currentSubtask,
-          createdAt,
-          id,
-        })
-      )
-    },
-    retry: 3,
+  const {
+    getToggleTaskMutate,
+    getToggleSubtaskMutate,
+    getDeleteTaskMutate,
+    getChangeSubtaskTextMutate,
+    getChangeTaskTextMutate,
+    getCreateNewSubtaskMutate,
+  } = useTasksContext()
+  const { mutate: toggleTaskMutate } = getToggleTaskMutate()
+  const { mutate: toggleSubtaskMutate } = getToggleSubtaskMutate()
+  const { mutate: deleteTaskMutate } = getDeleteTaskMutate()
+  const { mutate: changeSubtaskTextMutate } = getChangeSubtaskTextMutate()
+  const { mutate: changeTaskTextMutate } = getChangeTaskTextMutate()
+  const { mutate: createNewSubtaskMutate } = getCreateNewSubtaskMutate({
+    onMutate: () => resetNewSubtaskState(),
   })
 
   const handleToggleTodo = ({ isDone, taskId }: MutateToggleTask) => {
@@ -240,7 +108,13 @@ export const ToDo = React.forwardRef<React.ElementRef<"div">, ToDoProps>(functio
 
   const handleCreateNewSubtask = (props: MutateCreateNewSubtaskInput) => {
     const { isDone, task, taskId } = mutateCreateNewSubtaskSchema.parse(props)
-    createNewSubtaskMutate({ isDone, task, taskId, subtaskId: `TEMP_${nanoid()}` })
+    createNewSubtaskMutate({
+      isDone,
+      task,
+      taskId,
+      subtaskId: `TEMP_${nanoid()}`,
+      isNewSubtaskDone,
+    })
   }
 
   const setAccordion = (openingAccordion: string) => (currentOpenAccordion: string) =>

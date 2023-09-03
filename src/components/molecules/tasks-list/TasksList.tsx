@@ -29,8 +29,7 @@ export type TasksDisplayedProps = {}
 
 export function TasksDisplayed({}: TasksDisplayedProps) {
   const { sessionId } = useAuth()
-  const { tasks, useTasksQuery } = useTasksContext()
-  const { isLoading } = useTasksQuery
+  const { tasks, isLoadingTasks } = useTasksContext()
 
   if ((tasks && tasks.length === 0) || !sessionId)
     return (
@@ -43,7 +42,7 @@ export function TasksDisplayed({}: TasksDisplayedProps) {
       </div>
     )
 
-  if (isLoading || tasks === null)
+  if (isLoadingTasks || tasks === null)
     // if (true)
     return (
       <div className="flex flex-col gap-2">
