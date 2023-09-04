@@ -29,10 +29,10 @@ Good! To add your first tasks, click on the button `Add task`.\
 You can create a simple task by typing the task's text, or you can set an deadline date, just clicking on the button `Set a deadline date for the task`, choosing the date and click on `Add to-do`.\
 <img src="https://github.com/vitormarkis/buzzvels-todo/assets/121525239/f2366587-7925-47e2-bbed-da99a61307f9" alt="drawing" width="600"/>
 
-Your tasks should appear on your home screen.\
+Your tasks should appear on your initial screen.\
 <img src="https://github.com/vitormarkis/buzzvels-todo/assets/121525239/eb9575b9-fbbc-4263-9fc0-905369252f7f" alt="drawing" width="600"/>
 
-## Task oversight
+## Task container overview
 
 You can toggle the task status between done and to-do.\
 <img src="https://github.com/vitormarkis/buzzvels-todo/assets/121525239/f799fc85-c9f5-4bc5-bdb4-cce2d4134b1f" alt="drawing" />
@@ -57,15 +57,15 @@ In the right corner you'll notice a `three dots` button, clicking on it,
 a dropdown menu will appear, offering several choices.
 
 - Delete the task.
-- Add the task end date.\
-  <img src="https://github.com/vitormarkis/buzzvels-todo/assets/121525239/a92f7c2c-99b2-4313-8514-ed2ac473cb08" alt="drawing" />
+- Add the task end date.
+<img src="https://github.com/vitormarkis/buzzvels-todo/assets/121525239/a92f7c2c-99b2-4313-8514-ed2ac473cb08" alt="drawing" />
 
 If your task already has an end date, the options should be:
 
 - Delete the task.
-- Change the task end date.
+- Change end date.
 - Remove end date.
-  <img src="https://github.com/vitormarkis/buzzvels-todo/assets/121525239/8bcf08b9-6b33-4c6a-ba67-3f79dd741e4a" alt="drawing" />
+<img src="https://github.com/vitormarkis/buzzvels-todo/assets/121525239/8bcf08b9-6b33-4c6a-ba67-3f79dd741e4a" alt="drawing" />
 
 ---
 
@@ -131,3 +131,5 @@ All the possible sortings are:
 
 To see the sorting arrangement, click on the `Sorting` button, that will open a small box displaying the current sorting status, allowing you to easily keep track of how your tasks are organized.\
 <img src="https://github.com/vitormarkis/buzzvels-todo/assets/121525239/71ebca46-118a-4db4-9568-ed87dd91e746" alt="drawing" />
+
+That's it my friend, hope you can take a good use of the app I created, and hope it can help you to stay organized!
