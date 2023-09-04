@@ -1,3 +1,5 @@
+> [IMPORTANT! Technical Documentation](https://github.com/vitormarkis/buzzvels-todo/blob/main/technical-decisions.md)
+
 # Hello John!
 
 How are you doing? I've heard you're having a bit trouble to staying organized lately because you've been very busy. So I've gone head and put together a To-do's List to assist you in managing your daily tasks.
