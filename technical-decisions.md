@@ -4,7 +4,7 @@ To create the user interface, I opted for React with Next as framework. Regardin
 ### User experience
 In terms of user experience, I decided to take these approaches:
 
-- I implemented a **task placeholder** feature. When a user creates a new task and submits the form to add it, I modify the tasks cache, adding the new task. Initially, I add the new task with placeholder values for sensitive properties like `id` and `cretaedAt`, which typically expected to come from the server. If the server responds successfully, I then replace these placeholder values with the actual ones provided by the server. However, if the server response fails, I remove the placeholder task from the cache.
+- I implemented a **task placeholder** feature. When a user creates a new task and submits the form to add it, I modify the tasks cache, adding the new task. Initially, I add the new task with placeholder values for sensitive properties like `id` and `createdAt`, which typically are expected to come from the server. If the server responds with a success, I then replace these placeholder values with the actual ones provided by the server. However, if the server response fails, I remove the placeholder task from the cache.
 
 - I implemented a **task backup** feature when user edits an existing task. For instance, when they modifies the task's text, three significant things happens:
 	- A copy of the edited task is saved in a state, preserving the old data.
@@ -14,7 +14,7 @@ If the request fails, the cache switches the edited task with the backup one, wh
 
 - To improve the user experience while user is waiting the tasks to be fetched from the server, I've implemented **tasks skeletons** to be displayed when tasks haven't been retrevied yet.
 - For straightforward actions like removing an end date from a task, there is straightforward confirmation method.
-- More significant actions like deleting a task, there is a dedicated modal that provides the user with details of the action they are about to take.
+- For more significant actions like deleting a task, there is a dedicated modal that provides details for the user of the action they are about to take.
 
 ### Code good practices
 I've implemented an abstraction to manage the cache mutations:
@@ -46,7 +46,7 @@ QueryCache.tasks.add({
 
 Simple as that.
 
-Additionally, I've defined all the mutations and queries within a provider. This way I can supply to all the elements tree with these variables, ensuring easy access from popovers, modals and dialogs.
+Additionally, I've defined all the mutations and queries within a provider. This way I can supply to all the elements tree, these variables, ensuring easy access from popovers, modals and dialogs.
 
 I've defined the mutations getters with some default options, but the developer can add some extra properties or callbacks, just like this example.
 
@@ -107,7 +107,7 @@ const getCreateNewSubtaskMutate = useCallback(options => {
 )
 ```
 
-And now developer can instantiate a `createNewSubtaskMutate` with all the default values, AND with the extra options passed on in the declaration. In this particular case, the onMutate function should ALSO reset states related to addition of a new subtask.
+And now developer can instantiate a `createNewSubtaskMutate` with all the default values, AND with the extra options passed on in the declaration. In this particular case, the `onMutate` function should ALSO reset states related to addition of a new subtask.
 
 `// src/components/molecules/to-do/ToDo.tsx(72:3)`
 ```typescript
@@ -120,7 +120,7 @@ const { mutate: createNewSubtaskMutate } = getCreateNewSubtaskMutate({
 All the API endpoint handler functions have being unit tested with significant portion of possible scenarios, you can run these tests by running: `npm run test` 
 
 ### API
-I've created two line-middlewares to copy and paste in the endpoints as per developer's preference. Each middleware function performs validation something and provides a boolean indicating the success status along with the JSON response. This approach makes it easier to read manage, to handle, copy and paste, to choose middlewares, and enhance testability.
+I've created two line-middlewares to copy and paste in the endpoints as per developer's preference. Each middleware function performs validation on something and provides a boolean indicating the success status along with the it's JSON response. This approach makes it easier to manage, handle, copy and paste, and to choose middlewares, and also enhance testability.
 ```javascript
 function handler(req, res) {
   const auth = getAuth(req)
@@ -145,7 +145,7 @@ function handler(req, res) {
 
 
 ### Styling
-The styling was created following on a design pattern called **Container's Anatomy Driven Design**. This approach involves connecting element styles to a CSS variables through Tailwind, and you can provide different color palettes inline as you wish.
+The styling was created following a design pattern called **Container's Anatomy Driven Design**. This approach involves connecting element styles to a CSS variables through Tailwind, and then you can provide different color palettes inline as you wish.
 
 **Component declaration**
 ```jsx
@@ -192,9 +192,9 @@ colors: {
 
 Of course it's more complex than that but that is the core concept.
 
-### Why use Container's Anatomy Driven Design?
-Because you can efficiently establish a consistent design pattern to all your UI screens, by defining the color palettes. This way you can effortlessly create more components and elements without the need to be concerned about colors. Once you pass a color palette on the root level of an element, it will propagate those colors for all the subsequent elements.
+### Why should I use Container's Anatomy Driven Design?
+Because you can efficiently establish a consistent design pattern to all your UI screens, by defining the color palettes. This way you can effortlessly create more components and elements without the need to be concerned about colors. Once you pass a color palette on the root level of an element, it will propagate the colors for all the subsequent elements.
 
-Here is a showcase example: [CADD Showcase (new modal 0830 branch](https://github.com/vitormarkis/nomenclatura-mentor-cycle/tree/new-modal-0830)
+Here is a showcase project: [CADD Showcase (new modal 0830 branch](https://github.com/vitormarkis/nomenclatura-mentor-cycle/tree/new-modal-0830)
 
 CADD was created by me, Vitor Markis.
