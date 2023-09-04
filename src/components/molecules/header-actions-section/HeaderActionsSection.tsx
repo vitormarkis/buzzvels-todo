@@ -2,7 +2,6 @@ import Link from "next/link"
 import React from "react"
 import { User } from "@clerk/nextjs/server"
 import { cn } from "@/lib/utils"
-import { Case } from "@/components/atoms/case/Case"
 import { SlightContainer } from "@/components/container"
 import { IconMoon, IconSun } from "@/components/icons"
 import { HeaderOptionsDropdown } from "@/components/molecules/dropdown-options-header/HeaderOptionsDropdown"
@@ -39,22 +38,21 @@ export const HeaderActionsSection = React.forwardRef<
             <IconMoon className="hidden dark:block" />
           </Button>
         </PopoverThemeSwitcher>
-        <Case condition={isSignedIn}>
+        {isSignedIn ? (
           <HeaderOptionsDropdown>
             <Avatar>
-              <AvatarImage src={user!.imageUrl} />
+              <AvatarImage src={user.imageUrl} />
               <AvatarFallback>{usernameFallback}</AvatarFallback>
             </Avatar>
           </HeaderOptionsDropdown>
-        </Case>
-        <Case condition={!isSignedIn}>
+        ) : (
           <Button
             asChild
             className="__action rounded-full whitespace-nowrap"
           >
             <Link href="/sign-in">Sign in</Link>
           </Button>
-        </Case>
+        )}
       </SlightContainer>
     </div>
   )
